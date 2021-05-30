@@ -59,7 +59,7 @@ class CommandChDir(BaseCommand):
 			try:
 				os.chdir(new_dir)
 			except Exception as e:
-				return e.__str__()
+				return RetVal().wrap_exception(e)
 
 		shellstate.oldpwd = shellstate.pwd
 		shellstate.pwd = os.getcwd()
