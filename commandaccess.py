@@ -1,3 +1,4 @@
+from shellbase import BaseCommand
 import sys
 
 import shellcommands 
@@ -20,14 +21,15 @@ def init_commands():
 	__all_names.sort()
 
 
-def add_command(pCommand):
+def add_command(cmd: BaseCommand):
 	'''Add a Command instance to the list'''
 
 	global __all_names, __aliases
 
-	shellcommands.gShellCommands[pCommand.name] = pCommand
-	__all_names.append(pCommand.name)
-	for k,v in pCommand.get_aliases().items():
+	shellcommands.gShellCommands[cmd.name] = cmd
+	__all_names.append(cmd.name)
+	
+	for k,v in cmd.get_aliases().items():
 		if k in __aliases:
 			print(f"Error duplicate alias {k}. Already exists for {__aliases[k]}")
 			sys.exit(0)
@@ -35,19 +37,19 @@ def add_command(pCommand):
 		__all_names.append(k)
 
 
-def get_command(pName):
+def get_command(name: str):
 	'''Retrives a Command instance for the specified name, including alias resolution.'''
 
 	global __aliases
 
-	if len(pName) < 1:
+	if len(name) < 1:
 		return shellcommands.CommandEmpty()
 
-	if pName in __aliases:
-		pName = __aliases[pName]
+	if name in __aliases:
+		name = __aliases[name]
 
-	if pName in shellcommands.gShellCommands:
-		return shellcommands.gShellCommands[pName]
+	if name in shellcommands.gShellCommands:
+		return shellcommands.gShellCommands[name]
 
 	return shellcommands.CommandUnrecognized()
 
