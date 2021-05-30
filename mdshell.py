@@ -31,12 +31,12 @@ class ShellCompleter(Completer):
 					yield Completion(name[len(commandToken):],display=name)
 		elif tokens:
 			cmd = get_command(tokens[0])
-			if cmd.name != 'unrecognized' and tokens:
+			if cmd.name != 'unrecognized':
 				outTokens = cmd.autocomplete(tokens[1:], self.shell)
 				for out in outTokens:
-					yield Completion(out,display=out,
+					yield Completion(out[0],display=out[1],
 							start_position=-len(tokens[-1]))
-		
+
 
 class Shell:
 	'''The main shell class for the application.'''

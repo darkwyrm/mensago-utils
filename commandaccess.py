@@ -7,6 +7,7 @@ __aliases = dict()
 __all_names = list()
 
 def init_commands():
+	add_command(shellcommands.CommandChDir())
 	add_command(shellcommands.CommandListDir())
 	add_command(shellcommands.CommandExit())
 	add_command(shellcommands.CommandHelp())
