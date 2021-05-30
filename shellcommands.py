@@ -235,8 +235,12 @@ class CommandProfile(BaseCommand):
 	
 	def execute(self, shellstate: ShellState) -> RetVal:
 		if not self.tokens:
-			print('Active profile: %s' % shellstate.client.get_active_profile_name())
-			return ''
+			status = shellstate.client.get_active_profile()
+			if status.error():
+				status.set_info('No active profile')
+			else:
+				status.set_info(f"Active profile: {status['profile'].name}")
+			return status
 
 		verb = self.tokens[0].casefold()
 		if len(self.tokens) == 1:
