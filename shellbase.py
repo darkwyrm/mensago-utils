@@ -33,15 +33,15 @@ class BaseCommand:
 		self.name = ''
 		self.help = ''
 		self.description = ''
-		self.tokenList = list()
+		self.tokens = list()
 	
 	def set(self, tokens: list) -> RetVal:
 		'''Sets the input and does some basic validation'''
 
 		if tokens:
-			self.tokenList = tokens[1:]
+			self.tokens = tokens[1:]
 		else:
-			self.tokenList = list()
+			self.tokens = list()
 		
 		return RetVal()
 	
@@ -50,17 +50,12 @@ class BaseCommand:
 
 		return dict()
 	
-	def is_valid(self):
-		'''Subclasses validate their information and return an error string'''
-
-		return ''
-	
-	def execute(self, pshell_state):
+	def execute(self, pshell_state: ShellState) -> str:
 		'''The base class purposely does nothing. To be implemented by subclasses'''
 
 		return ''
 	
-	def autocomplete(self, ptokens, pshell_state):
+	def autocomplete(self, ptokens: list, pshell_state: ShellState) -> list:
 		'''Subclasses implement whatever is needed for their specific case. ptokens 
 contains all tokens from the raw input except the name of the command. All 
 double quotes have been stripped. Subclasses are expected to return a list 
@@ -75,11 +70,11 @@ class FilespecBaseCommand(BaseCommand):
 		super().__init__(self,raw_input,ptoken_list)
 		self.name = 'FilespecBaseCommand'
 		
-	def ProcessFileList(self, ptoken_list):
+	def process_wildcards(self, tokens: list) -> list:
 		'''Converts a list containing filenames and/or wildcards into a list of file paths.'''
 
-		fileList = list()
-		for index in ptoken_list:
+		out = list()
+		for index in tokens:
 			item = index
 			
 			if item[0] == '~':
@@ -93,29 +88,29 @@ class FilespecBaseCommand(BaseCommand):
 			try:
 				if '*' in item:
 					result = glob(item)
-					fileList.extend(result)
+					out.extend(result)
 				else:
-					fileList.append(item)
+					out.append(item)
 			except:
 				continue
-		return fileList
+		return out
 
 
-def GetFileSpecCompletions(pFileToken):
+def get_filespec_completions(token: str):
 	'''Implements autocompletion for commands which take a filespec. This be a directory, filename, 
 	or wildcard. If a wildcard, this method returns no results.'''
 
-	if not pFileToken or '*' in pFileToken:
+	if not token or '*' in token:
 		return list()
 	
 	outData = list()
 	
-	quoteMode = bool(pFileToken[0] == '"')
+	quoteMode = bool(token[0] == '"')
 	
 	if quoteMode:
-		items = glob(pFileToken[1:] + '*')
+		items = glob(token[1:] + '*')
 	else:
-		items = glob(pFileToken + '*')
+		items = glob(token + '*')
 	
 	for item in items:
 		display = item
