@@ -7,7 +7,7 @@ from prompt_toolkit import HTML
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion, ThreadedCompleter
 
-from commandaccess import gCommandAccess
+from commandaccess import init_commands, get_command, get_command_names
 from shellbase import ShellState
 
 class ShellCompleter(Completer):
@@ -24,12 +24,12 @@ class ShellCompleter(Completer):
 			commandToken = tokens[0]
 
 			# We have only one token, which is the command name
-			names = gCommandAccess.get_command_names()
+			names = get_command_names()
 			for name in names:
 				if name.startswith(commandToken):
 					yield Completion(name[len(commandToken):],display=name)
 		elif tokens:
-			cmd = gCommandAccess.get_command(tokens[0])
+			cmd = get_command(tokens[0])
 			if cmd.get_name() != 'unrecognized' and tokens:
 				outTokens = cmd.autocomplete(tokens[1:], self.shell)
 				for out in outTokens:
@@ -40,6 +40,7 @@ class ShellCompleter(Completer):
 class Shell:
 	'''The main shell class for the application.'''
 	def __init__(self):
+		init_commands()
 		self.state = ShellState()
 		
 		self.lexer = re.compile(r'"[^"]+"|\S+')
@@ -67,7 +68,7 @@ class Shell:
 				if not tokens:
 					continue
 				
-				cmd = gCommandAccess.get_command(tokens[0])
+				cmd = get_command(tokens[0])
 				cmd.set(rawInput)
 
 				returnCode = cmd.execute(self.state)

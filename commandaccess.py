@@ -2,51 +2,58 @@ import sys
 
 import shellcommands 
 
-class CommandAccess:
-	'''The CommandAccess houses all available command objects'''
-	def __init__(self):
-		self.aliases = dict()
-		self.all_names = list()
+__aliases = dict()
+__all_names = list()
 
-		self.add_command(shellcommands.CommandListDir())
-		self.add_command(shellcommands.CommandExit())
-		self.add_command(shellcommands.CommandHelp())
-		self.add_command(shellcommands.CommandShell())
+def init_commands():
+	add_command(shellcommands.CommandListDir())
+	add_command(shellcommands.CommandExit())
+	add_command(shellcommands.CommandHelp())
+	add_command(shellcommands.CommandShell())
 
-		self.add_command(shellcommands.CommandPreregister())
-		self.add_command(shellcommands.CommandProfile())
-		self.add_command(shellcommands.CommandRegister())
-		self.add_command(shellcommands.CommandSetUserID())
+	add_command(shellcommands.CommandPreregister())
+	add_command(shellcommands.CommandProfile())
+	add_command(shellcommands.CommandRegister())
+	add_command(shellcommands.CommandSetUserID())
 
-		self.all_names.sort()
+	global __all_names
+	__all_names.sort()
 
-	def add_command(self, pCommand):
-		'''Add a Command instance to the list'''
-		shellcommands.gShellCommands[pCommand.get_name()] = pCommand
-		self.all_names.append(pCommand.get_name())
-		for k,v in pCommand.get_aliases().items():
-			if k in self.aliases:
-				print("Error duplicate alias %s. Already exists for %s" %
-						(k, self.aliases[k]) )
-				sys.exit(0)
-			self.aliases[k] = v
-			self.all_names.append(k)
 
-	def get_command(self, pName):
-		'''Retrives a Command instance for the specified name, including alias resolution.'''
-		if len(pName) < 1:
-			return shellcommands.CommandEmpty()
+def add_command(pCommand):
+	'''Add a Command instance to the list'''
 
-		if pName in self.aliases:
-			pName = self.aliases[pName]
+	global __all_names, __aliases
 
-		if pName in shellcommands.gShellCommands:
-			return shellcommands.gShellCommands[pName]
+	shellcommands.gShellCommands[pCommand.get_name()] = pCommand
+	__all_names.append(pCommand.get_name())
+	for k,v in pCommand.get_aliases().items():
+		if k in __aliases:
+			print(f"Error duplicate alias {k}. Already exists for {__aliases[k]}")
+			sys.exit(0)
+		__aliases[k] = v
+		__all_names.append(k)
 
-		return shellcommands.CommandUnrecognized()
 
-	def get_command_names(self):
-		'''Get the names of all available commands'''
-		return self.all_names
+def get_command(pName):
+	'''Retrives a Command instance for the specified name, including alias resolution.'''
 
-gCommandAccess = CommandAccess()
+	global __aliases
+
+	if len(pName) < 1:
+		return shellcommands.CommandEmpty()
+
+	if pName in __aliases:
+		pName = __aliases[pName]
+
+	if pName in shellcommands.gShellCommands:
+		return shellcommands.gShellCommands[pName]
+
+	return shellcommands.CommandUnrecognized()
+
+
+def get_command_names():
+	'''Get the names of all available commands'''
+	
+	global __all_names
+	return __all_names
