@@ -51,7 +51,7 @@ class Shell:
 		while True:
 			try:
 				rawInput = session.prompt(HTML(
-					'🐈<yellow><b> > </b></yellow>' ),
+					'🐧<yellow><b> > </b></yellow>' ),
 					completer=commandCompleter)
 			except KeyboardInterrupt:
 				break
