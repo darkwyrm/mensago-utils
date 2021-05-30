@@ -16,14 +16,16 @@ from shellbase import BaseCommand, gShellCommands, ShellState
 
 class CommandEmpty(BaseCommand):
 	'''Special command just to handle blanks'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,raw_input,ptoken_list)
+
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = ''
 
 
 class CommandUnrecognized(BaseCommand):
 	'''Special class for handling anything the shell doesn't support'''
-	def __init__(self, raw_input=None, ptoken_list=None):
+
+	def __init__(self):
 		BaseCommand.__init__(self,'unrecognized')
 		self.name = 'unrecognized'
 
@@ -36,15 +38,15 @@ class CommandUnrecognized(BaseCommand):
 
 class CommandChDir(BaseCommand):
 	'''Change directories'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,raw_input,ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'chdir'
-		self.helpInfo = 'Usage: cd <location>\nChanges to the specified directory\n\n' + \
+		self.help = 'Usage: cd <location>\nChanges to the specified directory\n\n' + \
 						'Aliases: cd'
 		self.description = 'change directory/location'
 
 	def get_aliases(self) -> dict:
-		return { "cd":"chdir" }
+		return { 'cd': 'chdir' }
 
 	def execute(self, pshell_state: ShellState) -> str:
 		if self.tokenList:
@@ -93,10 +95,10 @@ class CommandChDir(BaseCommand):
 
 class CommandExit(BaseCommand):
 	'''Exit the program'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,'exit')
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'exit'
-		self.helpInfo = 'Usage: exit\nCloses the connection and exits the shell.'
+		self.help = 'Usage: exit\nCloses the connection and exits the shell.'
 		self.description = 'Exits the shell'
 
 	def get_aliases(self) -> dict:
@@ -108,10 +110,10 @@ class CommandExit(BaseCommand):
 
 class CommandHelp(BaseCommand):
 	'''Implements the help system'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,'help')
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'help'
-		self.helpInfo = 'Usage: help <command>\nProvides information on a command.\n\n' + \
+		self.help = 'Usage: help <command>\nProvides information on a command.\n\n' + \
 						'Aliases: ?'
 		self.description = 'Show help on a command'
 
@@ -135,17 +137,17 @@ class CommandHelp(BaseCommand):
 			ordered = collections.OrderedDict(sorted(gShellCommands.items()))
 			for name,item in ordered.items():
 				print_formatted_text(HTML(
-					"<gray><b>%s</b>\t%s</gray>" % (name, item.get_description())
+					"<gray><b>%s</b>\t%s</gray>" % (name, item.description)
 				))
 		return ''
 
 
 class CommandListDir(BaseCommand):
 	'''Performs a directory listing by calling the shell'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,raw_input,ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'ls'
-		self.helpInfo = 'Usage: as per bash ls command or Windows dir command'
+		self.help = 'Usage: as per bash ls command or Windows dir command'
 		self.description = 'list directory contents'
 
 	def get_aliases(self) -> dict:
@@ -193,15 +195,15 @@ class CommandListDir(BaseCommand):
 
 class CommandPreregister(BaseCommand):
 	'''Preregister an account for someone'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self, raw_input, ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'preregister'
-		self.helpInfo = helptext.preregister_cmd
+		self.help = helptext.preregister_cmd
 		self.description = 'Preregister a new account for someone.'
 		
 	def execute(self, pshell_state: ShellState) -> str:
 		if len(self.tokenList) > 2 or len(self.tokenList) == 0:
-			print(self.helpInfo)
+			print(self.help)
 			return ''
 		
 		try:
@@ -231,10 +233,10 @@ class CommandPreregister(BaseCommand):
 
 class CommandProfile(BaseCommand):
 	'''User profile management command'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self, raw_input, ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'profile'
-		self.helpInfo = helptext.profile_cmd
+		self.help = helptext.profile_cmd
 		self.description = 'Manage profiles.'
 	
 	def execute(self, pshell_state: ShellState) -> str:
@@ -250,7 +252,7 @@ class CommandProfile(BaseCommand):
 				for profile in profiles:
 					print(profile.name)
 			else:
-				print(self.get_help())
+				print(self.help)
 			return ''
 
 		if verb == 'create':
@@ -276,13 +278,13 @@ class CommandProfile(BaseCommand):
 				print("Couldn't set profile as default: %s" % status.info())
 		elif verb == 'rename':
 			if len(self.tokenList) != 3:
-				print(self.get_help())
+				print(self.help)
 				return ''
 			status = pshell_state.client.rename_profile(self.tokenList[1], self.tokenList[2])
 			if status.error():
 				print("Couldn't rename profile: %s" % status.info())
 		else:
-			print(self.get_help())
+			print(self.help)
 		return ''
 	
 	def autocomplete(self, ptokens: list, pshell_state: ShellState):
@@ -304,16 +306,16 @@ class CommandProfile(BaseCommand):
 
 class CommandRegister(BaseCommand):
 	'''Register an account on a server'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self, raw_input, ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'register'
-		self.helpInfo = helptext.register_cmd
+		self.help = helptext.register_cmd
 		self.description = 'Register a new account on the connected server.'
 		
 
 	def execute(self, pshell_state: ShellState) -> str:
 		if len(self.tokenList) != 1:
-			print(self.helpInfo)
+			print(self.help)
 			return ''
 		
 		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
@@ -362,10 +364,10 @@ class CommandRegister(BaseCommand):
 
 class CommandSetInfo(BaseCommand):
 	'''Set workspace information'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,raw_input,ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'setinfo'
-		self.helpInfo = helptext.setinfo_cmd
+		self.help = helptext.setinfo_cmd
 		self.description = 'Set workspace information'
 
 	def execute(self, pshell_state: ShellState) -> str:
@@ -375,10 +377,10 @@ class CommandSetInfo(BaseCommand):
 
 class CommandShell(BaseCommand):
 	'''Perform shell commands'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,raw_input,ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'shell'
-		self.helpInfo = helptext.shell_cmd
+		self.help = helptext.shell_cmd
 		self.description = 'Run a shell command'
 
 	def get_aliases(self) -> dict:
@@ -394,15 +396,15 @@ class CommandShell(BaseCommand):
 
 class CommandSetUserID(BaseCommand):
 	'''Sets the workspace's user ID'''
-	def __init__(self, raw_input=None, ptoken_list=None):
-		BaseCommand.__init__(self,raw_input,ptoken_list)
+	def __init__(self):
+		BaseCommand.__init__(self)
 		self.name = 'setuser_id'
-		self.helpInfo = helptext.setuserid_cmd
+		self.help = helptext.setuserid_cmd
 		self.description = 'Set user id for workspace'
 
 	def execute(self, pshell_state: ShellState) -> str:
 		if len(self.tokenList) != 1:
-			print(self.helpInfo)
+			print(self.help)
 			return ''
 		
 		if '"' in self.tokenList[0] or "/" in self.tokenList[0]:

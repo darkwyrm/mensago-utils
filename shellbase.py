@@ -6,6 +6,7 @@ import os
 import re
 
 from pymensago.client import MensagoClient
+from retval import RetVal
 
 # This global is needed for meta commands, such as Help. Do not access this list directly unless
 # there is literally no other option.
@@ -27,63 +28,27 @@ class ShellState:
 class BaseCommand:
 	'''The main base Command class. Defines the basic API and all tagsh commands inherit from it.'''
 
-	def parse_input(self, raw_input):
-		'''Tokenize the raw input from the user'''
-		if len(raw_input) < 1:
-			return list()
-		
-		rawTokens = re.findall(r'"[^"]+"|\S+', raw_input.strip())
-		tokens = list()
-		for token in rawTokens:
-			tokens.append(token.strip('"'))
-		return tokens
-	
-	def set(self, raw_input=None, ptoken_list=None):
-		'''Sets the input and does some basic parsing'''
+	def __init__(self):
 
-		if not raw_input:
-			self.rawCommand = ''
-			self.tokenList = list()
-		else:
-			self.rawCommand = raw_input
-			rawTokens = list()
-			if ptoken_list is None:
-				rawTokens = self.parse_input(raw_input)
-			else:
-				rawTokens = ptoken_list
-			
-			if len(rawTokens) > 1:
-				self.tokenList = rawTokens[1:]
-			else:
-				self.tokenList = list()
-	
-	def __init__(self, raw_input=None, ptoken_list=None):
-
-		self.set(raw_input, ptoken_list)
-		if raw_input:
-			self.name = raw_input.split(' ')
-		self.helpInfo = ''
+		self.name = ''
+		self.help = ''
 		self.description = ''
+		self.tokenList = list()
+	
+	def set(self, tokens: list) -> RetVal:
+		'''Sets the input and does some basic validation'''
+
+		if tokens:
+			self.tokenList = tokens[1:]
+		else:
+			self.tokenList = list()
+		
+		return RetVal()
 	
 	def get_aliases(self):
 		'''Returns a dictionary of alternative names for the command'''
 
 		return dict()
-	
-	def get_help(self):
-		'''Returns help information for the command'''
-
-		return self.helpInfo
-	
-	def get_description(self):
-		'''Returns a description of the command'''
-
-		return self.description
-	
-	def get_name(self):
-		'''Returns the command's name'''
-
-		return self.name
 	
 	def is_valid(self):
 		'''Subclasses validate their information and return an error string'''

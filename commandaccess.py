@@ -25,8 +25,8 @@ def add_command(pCommand):
 
 	global __all_names, __aliases
 
-	shellcommands.gShellCommands[pCommand.get_name()] = pCommand
-	__all_names.append(pCommand.get_name())
+	shellcommands.gShellCommands[pCommand.name] = pCommand
+	__all_names.append(pCommand.name)
 	for k,v in pCommand.get_aliases().items():
 		if k in __aliases:
 			print(f"Error duplicate alias {k}. Already exists for {__aliases[k]}")
