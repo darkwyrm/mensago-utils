@@ -6,6 +6,7 @@ import re
 from prompt_toolkit import HTML
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import Completer, Completion, ThreadedCompleter
+from prompt_toolkit.shortcuts.utils import print_formatted_text
 
 from commandaccess import init_commands, get_command, get_command_names
 from shellbase import ShellState
@@ -49,31 +50,37 @@ class Shell:
 		'''Begins the prompt loop.'''
 		session = PromptSession()
 		commandCompleter = ThreadedCompleter(ShellCompleter(self.state))
+		
+		split_pattern = re.compile(r'\"(?:\%\"|[^\"])*\"|\"[^\"]*\"|[^\s\"]+')
+
 		while True:
 			try:
-				rawInput = session.prompt(HTML(
-					'🐧<yellow><b> > </b></yellow>' ),
-					completer=commandCompleter)
+				raw_input = session.prompt(HTML('🐧<yellow><b> > </b></yellow>' ),
+										completer=commandCompleter)
 			except KeyboardInterrupt:
 				break
 			except EOFError:
 				break
 			else:
-				rawTokens = self.lexer.findall(rawInput.strip())
+				raw_tokens = re.findall(split_pattern, raw_input.strip())
 				
 				tokens = list()
-				for token in rawTokens:
-					tokens.append(token.strip('"'))
+				for token in raw_tokens:
+					tokens.append(token.strip('"').replace('%"','"'))
 
 				if not tokens:
 					continue
 				
 				cmd = get_command(tokens[0])
-				cmd.set(rawInput)
+				status = cmd.set(tokens[1:])
+				if status.error():
+					print(f"BUG: error setting info for command: {status.error()} / " +
+							f"{status.info()}")
+					break
 
-				returnCode = cmd.execute(self.state)
-				if returnCode:
-					print(returnCode + '\n')
+				status = cmd.execute(self.state)
+				if status.info():
+					print_formatted_text(status.info())
 
 
 if __name__ == '__main__':

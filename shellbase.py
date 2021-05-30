@@ -6,7 +6,7 @@ import os
 import re
 
 from pymensago.client import MensagoClient
-from retval import RetVal
+from retval import ErrBadType, RetVal
 
 # This global is needed for meta commands, such as Help. Do not access this list directly unless
 # there is literally no other option.
@@ -38,11 +38,14 @@ class BaseCommand:
 	def set(self, tokens: list) -> RetVal:
 		'''Sets the input and does some basic validation'''
 
-		if tokens:
-			self.tokens = tokens[1:]
-		else:
+		if not tokens:
 			self.tokens = list()
 		
+		if not isinstance(tokens, list):
+			return RetVal(ErrBadType, 'command tokens not a list')
+		
+		self.tokens = tokens
+				
 		return RetVal()
 	
 	def get_aliases(self):
@@ -50,7 +53,7 @@ class BaseCommand:
 
 		return dict()
 	
-	def execute(self, pshell_state: ShellState) -> str:
+	def execute(self, pshell_state: ShellState) -> RetVal:
 		'''The base class purposely does nothing. To be implemented by subclasses'''
 
 		return ''

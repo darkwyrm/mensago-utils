@@ -9,6 +9,7 @@ import subprocess
 import sys
 
 from prompt_toolkit import print_formatted_text, HTML
+from retval import ErrBadData, ErrBadValue, ErrEmptyData, ErrNotFound, ErrOK, ErrServerError, ErrUnimplemented, RetVal
 
 from pymensago.encryption import check_password_complexity
 import helptext
@@ -29,8 +30,8 @@ class CommandUnrecognized(BaseCommand):
 		super().__init__()
 		self.name = 'unrecognized'
 
-	def execute(self, shellstate: ShellState) -> str:
-		return "Unknown command"
+	def execute(self, shellstate: ShellState) -> RetVal:
+		return RetVal(ErrNotFound, 'Unknown command')
 
 
 class CommandChDir(BaseCommand):
@@ -45,7 +46,7 @@ class CommandChDir(BaseCommand):
 	def get_aliases(self) -> dict:
 		return { 'cd': 'chdir' }
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		if self.tokens:
 			new_dir = ''
 			if '~' in self.tokens[0]:
@@ -63,7 +64,7 @@ class CommandChDir(BaseCommand):
 		shellstate.oldpwd = shellstate.pwd
 		shellstate.pwd = os.getcwd()
 
-		return ''
+		return RetVal()
 
 	def autocomplete(self, tokens: list, shellstate: ShellState):
 		if len(tokens) == 1:
@@ -101,7 +102,7 @@ class CommandExit(BaseCommand):
 	def get_aliases(self) -> dict:
 		return { "x":"exit", "q":"exit" }
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		sys.exit(0)
 
 
@@ -117,26 +118,22 @@ class CommandHelp(BaseCommand):
 	def get_aliases(self) -> dict:
 		return { "?":"help" }
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
+		out = ''
 		if self.tokens:
 			# help <keyword>
-			for cmdName in self.tokens:
-				if len(cmdName) < 1:
-					continue
-
-				if cmdName in gShellCommands:
-					print(gShellCommands[cmdName].get_help())
-				else:
-					print_formatted_text(HTML(
-						"No help on <gray><b>%s</b></gray>" % cmdName))
-		else:
-			# Bare help command: print available commands
-			ordered = collections.OrderedDict(sorted(gShellCommands.items()))
-			for name,item in ordered.items():
-				print_formatted_text(HTML(
-					"<gray><b>%s</b>\t%s</gray>" % (name, item.description)
-				))
-		return ''
+			if self.tokens[0] in gShellCommands:
+				out = gShellCommands[self.tokens[0]].help
+			else:
+				out = HTML(f"No help on <gray><b>{self.tokens[0]}</b></gray>\n")
+			return RetVal(ErrOK, out)	
+		
+		# Bare help command: print available commands
+		ordered = collections.OrderedDict(sorted(gShellCommands.items()))
+		for name,item in ordered.items():
+			print_formatted_text(HTML(f"<gray><b>{name}</b>\t{item.description}</gray>"))
+		
+		return RetVal()
 
 
 class CommandListDir(BaseCommand):
@@ -150,16 +147,15 @@ class CommandListDir(BaseCommand):
 	def get_aliases(self) -> dict:
 		return { "dir":"ls" }
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		if sys.platform == 'win32':
-			tokens = ['dir','/w']
-			tokens.extend(self.tokens)
+			tokens = ['dir','/w'].extend(self.tokens)
 			subprocess.call(tokens, shell=True)
 		else:
-			tokens = ['ls','--color=auto']
-			tokens.extend(self.tokens)
+			tokens = ['ls','--color=auto'].extend(self.tokens)
 			subprocess.call(tokens)
-		return ''
+		
+		return RetVal()
 
 	def autocomplete(self, tokens: list, shellstate: ShellState):
 		if len(tokens) == 1:
@@ -198,7 +194,7 @@ class CommandPreregister(BaseCommand):
 		self.help = helptext.preregister_cmd
 		self.description = 'Preregister a new account for someone.'
 		
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		if len(self.tokens) > 2 or len(self.tokens) == 0:
 			print(self.help)
 			return ''
@@ -206,26 +202,27 @@ class CommandPreregister(BaseCommand):
 		try:
 			port = int(self.tokens[0])
 		except:
-			return 'Bad port number'
+			return RetVal(ErrBadValue, 'Bad port number')
 		
 		user_id = ''
 		if len(self.tokens) == 2:
 			user_id = self.tokens[1]
 		
 		if user_id and ('"' in user_id or '/' in user_id):
-			return 'User ID may not contain " or /.'
+			return RetVal(ErrBadData, 'User ID may not contain " or /.')
 		
 		status = shellstate.client.preregister_account(port, user_id)
 		
 		if status['status'] != 200:
-			return 'Preregistration error: %s' % (status.info())
+			return RetVal(ErrServerError, f"Preregistration error: {status.info()}")
 		
 		outparts = [ 'Preregistration success:\n' ]
 		if status['uid']:
 			outparts.extend(['User ID: ', status['uid'], '\n'])
 		outparts.extend(['Workspace ID: ' , status['wid'], '\n',
-						'Registration Code: ', status['regcode']])
-		return ''.join(outparts)
+						'Registration Code: ', status['regcode']], '\n')
+		
+		return RetVal(ErrOK, ''.join(outparts))
 
 
 class CommandProfile(BaseCommand):
@@ -236,7 +233,7 @@ class CommandProfile(BaseCommand):
 		self.help = helptext.profile_cmd
 		self.description = 'Manage profiles.'
 	
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		if not self.tokens:
 			print('Active profile: %s' % shellstate.client.get_active_profile_name())
 			return ''
@@ -255,41 +252,43 @@ class CommandProfile(BaseCommand):
 		if verb == 'create':
 			status = shellstate.client.create_profile(self.tokens[1])
 			if status.error():
-				print("Couldn't create profile: %s" % status.info())
+				status.set_info(f"Couldn't create profile: {status.info()}")
+			return status
 		
-		elif verb == 'delete':
+		if verb == 'delete':
 			print("This will delete the profile and all of its files. It can't be undone.")
-			choice = input("Really delete profile '%s'? [y/N] " % self.tokens[1]).casefold()
+			choice = input(f"Really delete profile '{self.tokens[1]}'? [y/N] ").casefold()
+			status = RetVal()
 			if choice in [ 'y', 'yes' ]:
 				status = shellstate.client.delete_profile(self.tokens[1])
 				if status.error():
-					print("Couldn't delete profile: %s" % status.info())
+					status.set_info(f"Couldn't delete profile: {status.info()}")
 				else:
-					print("Profile '%s' has been deleted" % self.tokens[1])
+					status.set_info(f"Profile 'self.tokens[1]' has been deleted")
+			return status
 		
-		elif verb == 'set':
+		if verb == 'set':
 			status = shellstate.client.activate_profile(self.tokens[1])
 			if status.error():
-				print("Couldn't activate profile: %s" % status.info())
+				status.set_info(f"Couldn't activate profile: {status.info()}")
+			return status
 		
-		elif verb == 'setdefault':
+		if verb == 'setdefault':
 			status = shellstate.client.set_default_profile(self.tokens[1])
 			if status.error():
-				print("Couldn't set profile as default: %s" % status.info())
+				status.set_info(f"Couldn't set profile as default: {status.info()}")
+			return status
 		
-		elif verb == 'rename':
+		if verb == 'rename':
 			if len(self.tokens) != 3:
-				print(self.help)
-				return ''
+				return RetVal(ErrEmptyData, self.help)
 			status = shellstate.client.rename_profile(self.tokens[1], self.tokens[2])
 			if status.error():
-				print("Couldn't rename profile: %s" % status.info())
+				status.set_info(f"Couldn't rename profile: {status.info()}")
+			return status
 		
-		else:
-			print(self.help)
-		
-		return ''
-	
+		return RetVal(ErrOK, self.help)
+
 	def autocomplete(self, tokens: list, shellstate: ShellState):
 		if len(tokens) < 1:
 			return list()
@@ -314,12 +313,10 @@ class CommandRegister(BaseCommand):
 		self.name = 'register'
 		self.help = helptext.register_cmd
 		self.description = 'Register a new account on the connected server.'
-		
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		if len(self.tokens) != 1:
-			print(self.help)
-			return ''
+			return RetVal(ErrOK, self.help)
 		
 		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
 			"of uppercase and lowercase letters and preferably a number and/or symbol. You can "
@@ -362,7 +359,7 @@ class CommandRegister(BaseCommand):
 		elif status['status'] in returncodes.keys():
 			return returncodes[status['status']]
 		
-		return 'Registration success'
+		return RetVal(ErrOK, 'Registration success')
 
 
 class CommandSetInfo(BaseCommand):
@@ -373,9 +370,9 @@ class CommandSetInfo(BaseCommand):
 		self.help = helptext.setinfo_cmd
 		self.description = 'Set workspace information'
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		# TODO: Implement SETINFO
-		return ''
+		return RetVal(ErrUnimplemented, 'Not implemented yet. Sorry!')
 
 
 class CommandShell(BaseCommand):
@@ -390,12 +387,14 @@ class CommandShell(BaseCommand):
 		'''Return aliases for the command'''
 		return { "sh":"shell", "`":"shell" }
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
+		status = RetVal()
 		try:
 			os.system(' '.join(self.tokens))
 		except Exception as e:
-			print("Error running command: %s" % e)
-		return ''
+			status.set_info(f"Error running command: {str(e)}")
+		
+		return status
 
 
 class CommandSetUserID(BaseCommand):
@@ -406,13 +405,13 @@ class CommandSetUserID(BaseCommand):
 		self.help = helptext.setuserid_cmd
 		self.description = 'Set user id for workspace'
 
-	def execute(self, shellstate: ShellState) -> str:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		if len(self.tokens) != 1:
 			print(self.help)
 			return ''
 		
 		if '"' in self.tokens[0] or "/" in self.tokens[0]:
-			return 'A user id may not contain " or /.'
+			return RetVal(ErrBadData, 'A user id may not contain " or /.')
 		
 		p = shellstate.client.get_active_profile()
 		worklist = p.get_workspaces()
@@ -423,10 +422,11 @@ class CommandSetUserID(BaseCommand):
 				break
 		
 		if not user_wksp:
-			return "Couldn't find the identity workspace for the profile."
+			return RetVal(ErrNotFound, "Couldn't find the identity workspace for the profile.")
 		
 		status = user_wksp.set_user_id(self.tokens[0])
 		if status.error():
-			return "Error setting user ID %s : %s" % (status.error(), status.info())
-		
-		return 'Mensago address is now %s/%s' % (user_wksp.uid, user_wksp.domain)
+			status.set_info(f"Error setting user ID:  {status.error()} / {status.info()}")
+		else:
+			status.set_info(f"Mensago address is now {user_wksp.uid}/{user_wksp.domain}")
+		return status 
