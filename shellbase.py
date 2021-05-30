@@ -11,7 +11,6 @@ from pymensago.client import MensagoClient
 # there is literally no other option.
 gShellCommands = dict()
 
-# Class for storing the state of the shell
 class ShellState:
 	'''Stores the state of the shell'''
 	def __init__(self):
@@ -25,9 +24,8 @@ class ShellState:
 		self.client = MensagoClient()
 
 
-# The main base Command class. Defines the basic API and all tagsh commands inherit from it
 class BaseCommand:
-	'''Provides the base API for interacting with Command objects'''
+	'''The main base Command class. Defines the basic API and all tagsh commands inherit from it.'''
 
 	def parse_input(self, raw_input):
 		'''Tokenize the raw input from the user'''
@@ -60,7 +58,8 @@ class BaseCommand:
 				self.tokenList = list()
 	
 	def __init__(self, raw_input=None, ptoken_list=None):
-		self.set(raw_input,ptoken_list)
+
+		self.set(raw_input, ptoken_list)
 		if raw_input:
 			self.name = raw_input.split(' ')
 		self.helpInfo = ''
@@ -68,26 +67,32 @@ class BaseCommand:
 	
 	def get_aliases(self):
 		'''Returns a dictionary of alternative names for the command'''
+
 		return dict()
 	
 	def get_help(self):
 		'''Returns help information for the command'''
+
 		return self.helpInfo
 	
 	def get_description(self):
 		'''Returns a description of the command'''
+
 		return self.description
 	
 	def get_name(self):
 		'''Returns the command's name'''
+
 		return self.name
 	
 	def is_valid(self):
 		'''Subclasses validate their information and return an error string'''
+
 		return ''
 	
 	def execute(self, pshell_state):
 		'''The base class purposely does nothing. To be implemented by subclasses'''
+
 		return ''
 	
 	def autocomplete(self, ptokens, pshell_state):
@@ -95,6 +100,7 @@ class BaseCommand:
 contains all tokens from the raw input except the name of the command. All 
 double quotes have been stripped. Subclasses are expected to return a list 
 containing matches.'''
+
 		return list()
 
 
@@ -106,6 +112,7 @@ class FilespecBaseCommand(BaseCommand):
 		
 	def ProcessFileList(self, ptoken_list):
 		'''Converts a list containing filenames and/or wildcards into a list of file paths.'''
+
 		fileList = list()
 		for index in ptoken_list:
 			item = index
@@ -128,8 +135,7 @@ class FilespecBaseCommand(BaseCommand):
 				continue
 		return fileList
 
-# This function implements autocompletion for command which take a filespec. This can be a 
-# directory, file, or wildcard. If a wildcard, we return no results.
+
 def GetFileSpecCompletions(pFileToken):
 	'''Implements autocompletion for commands which take a filespec. This be a directory, filename, 
 	or wildcard. If a wildcard, this method returns no results.'''
@@ -139,10 +145,7 @@ def GetFileSpecCompletions(pFileToken):
 	
 	outData = list()
 	
-	if pFileToken[0] == '"':
-		quoteMode = True
-	else:
-		quoteMode = False
+	quoteMode = bool(pFileToken[0] == '"')
 	
 	if quoteMode:
 		items = glob(pFileToken[1:] + '*')
