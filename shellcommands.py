@@ -12,6 +12,8 @@ from prompt_toolkit import print_formatted_text, HTML
 from retval import ErrBadData, ErrBadValue, ErrEmptyData, ErrNotFound, ErrOK, ErrServerError, ErrUnimplemented, RetVal
 
 from pymensago.encryption import check_password_complexity
+from pymensago.utils import validate_userid
+
 import helptext
 from shellbase import BaseCommand, gShellCommands, ShellState
 
@@ -320,27 +322,33 @@ class CommandRegister(BaseCommand):
 		self.help = helptext.register_cmd
 		self.description = 'Register a new account on the connected server.'
 
+	def validate(self) -> RetVal:
+		if not self.tokens:
+			return RetVal(ErrEmptyData, 'A server must be specified.')
+
+		if 'password' in self.args:		
+			status = check_password_complexity(self.args['password'])
+			if status['strength'] in [ 'very weak', 'weak' ]:
+				return RetVal(ErrBadValue, 'Unfortunately, the password you entered was too weak. '
+					'Please use another.')
+		
+		if 'userid' in self.args:
+			if not validate_userid(self.args['userid']):
+				return RetVal(ErrBadValue, 'The user ID given is not valid')
+		else:
+			self.args['userid'] = ''
+
+		return RetVal()
+
 	def execute(self, shellstate: ShellState) -> RetVal:
-		if len(self.tokens) not in [1,2]:
-			return RetVal(ErrOK, self.help)
 		
-		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
-			"of uppercase and lowercase letters and preferably a number and/or symbol. You can "
-			"even use non-English letters, such as ß, ñ, Ω, and Ç!")
-		
-		password_needed = True
-		while password_needed:
-			password = getpass()
-			confirmation = getpass("Confirm password: ")
-			if password == confirmation:
-				status = check_password_complexity(password)
-				if status['strength'] in [ 'very weak', 'weak' ]:
-					print("Unfortunately, the password you entered was too weak. Please " \
-							"use another.")
-					continue
-				password_needed = False
-		
-		status = shellstate.client.register_account(self.tokens[0], password)
+		if 'password' not in self.args:
+			self._setpassword_interactive()
+			if 'password' not in self.args:
+				return RetVal()
+
+		status = shellstate.client.register_account(self.tokens[0], self.args['password'], 
+													self.args['userid'])
 		
 		returncodes = {
 			304:"This server does not allow self-registration.",
@@ -366,6 +374,29 @@ class CommandRegister(BaseCommand):
 			return returncodes[status['status']]
 		
 		return RetVal(ErrOK, 'Registration success')
+
+	def _setpassword_interactive(self):
+		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
+			"of uppercase and lowercase letters and preferably a number and/or symbol. You can "
+			"even use non-English letters, such as ß, ñ, Ω, and Ç! Leading and trailing spaces "
+			"will be stripped.")
+		
+		while True:
+			password = getpass("Password: ").strip()
+			if not password:
+				return
+			
+			confirmation = getpass("Confirm password: ").strip()
+			if password == confirmation:
+				status = check_password_complexity(password)
+				if status['strength'] in [ 'very weak', 'weak' ]:
+					print("Unfortunately, the password you entered was too weak. Please " \
+							"use another.")
+					continue
+				self.args['password'] = password
+				break
+			else:
+				print("Passwords do not match.")
 
 
 class CommandSetInfo(BaseCommand):

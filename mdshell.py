@@ -61,9 +61,8 @@ if __name__ == '__main__':
 			cmd = get_command(tokens[0])
 			status = cmd.set(raw_input)
 			if status.error():
-				print(f"BUG: error setting info for command: {status.error()} / " +
-						f"{status.info()}")
-				break
+				print(status.info())
+				continue
 
 			status = cmd.execute(shellstate)
 			if status.info():
