@@ -37,42 +37,34 @@ class ShellCompleter(Completer):
 					yield Completion(out[0],display=out[1],	start_position=-len(tokens[-1]))
 
 
-class Shell:
-	'''The main shell class for the application.'''
-	def __init__(self):
-		init_commands()
-		self.state = ShellState()
-
-	def Prompt(self):
-		'''Begins the prompt loop.'''
-		session = PromptSession()
-		commandCompleter = ThreadedCompleter(ShellCompleter(self.state))
-		
-		while True:
-			try:
-				raw_input = session.prompt(HTML('🐧<yellow><b> > </b></yellow>' ),
-										completer=commandCompleter)
-			except KeyboardInterrupt:
-				break
-			except EOFError:
-				break
-			else:
-				tokens = raw_input.strip().split(' ')
-				
-				if not tokens:
-					continue
-				
-				cmd = get_command(tokens[0])
-				status = cmd.set(raw_input)
-				if status.error():
-					print(f"BUG: error setting info for command: {status.error()} / " +
-							f"{status.info()}")
-					break
-
-				status = cmd.execute(self.state)
-				if status.info():
-					print_formatted_text(status.info())
-
-
 if __name__ == '__main__':
-	Shell().Prompt()
+	init_commands()
+	shellstate = ShellState()
+
+	session = PromptSession()
+	commandCompleter = ThreadedCompleter(ShellCompleter(shellstate))
+	
+	while True:
+		try:
+			raw_input = session.prompt(HTML('🐧<yellow><b> > </b></yellow>' ),
+									completer=commandCompleter)
+		except KeyboardInterrupt:
+			break
+		except EOFError:
+			break
+		else:
+			tokens = raw_input.strip().split(' ')
+			
+			if not tokens:
+				continue
+			
+			cmd = get_command(tokens[0])
+			status = cmd.set(raw_input)
+			if status.error():
+				print(f"BUG: error setting info for command: {status.error()} / " +
+						f"{status.info()}")
+				break
+
+			status = cmd.execute(shellstate)
+			if status.info():
+				print_formatted_text(status.info())
