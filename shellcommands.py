@@ -12,6 +12,7 @@ from prompt_toolkit import print_formatted_text, HTML
 from retval import ErrBadData, ErrBadValue, ErrEmptyData, ErrNotFound, ErrOK, ErrServerError, ErrUnimplemented, RetVal
 
 from pymensago.encryption import check_password_complexity
+import pymensago.errorcodes as errorcodes
 from pymensago.utils import validate_userid
 
 import helptext
@@ -360,20 +361,14 @@ class CommandRegister(BaseCommand):
 		}
 		
 		if status.error():
-			return 'Registration error %s: %s' % (status.error(), status.info())
+			return status
 
-		if status['status'] == 201:
-			# 201 - Registered
-
-			# TODO: finish handling registration
-			# 1) Set friendly name for account, if applicable - SETADDR
-			# 2) Upload keycard and receive signed keycard - SIGNCARD
-			# 3) Save signed keycard to database
-			pass
-		elif status['status'] in returncodes.keys():
-			return returncodes[status['status']]
+		# TODO: finish handling registration
+		# 1) Set friendly name for account, if applicable - SETADDR
+		# 2) Upload keycard and receive signed keycard - SIGNCARD
+		# 3) Save signed keycard to database
 		
-		return RetVal(ErrOK, 'Registration success')
+		return RetVal(ErrUnimplemented, 'Registration not completely implemented')
 
 	def _setpassword_interactive(self):
 		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
