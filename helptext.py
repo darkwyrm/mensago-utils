@@ -47,13 +47,13 @@ profile exists, this action has no effect.
 
 set <name> - activates the specified profile and deactivates the current one.'''
 
-register_cmd = '''Usage: register <server>
+register_cmd = '''Usage: register <server> [userid]
 
 Register a new workspace account. This command requires a connection to a
-server. Depending on the registration type set on the server, this command may
-return a status other than success or failure. If a server immediately creates
-a new workspace account, this command will print the new numeric address
-created.'''
+server. A Mensago User ID may also be supplied. Depending on the registration 
+type set on the server, this command may return a status other than success or 
+failure. If a server immediately creates a new workspace account, this command 
+will print the new numeric address created.'''
 
 shell_cmd = '''Usage: shell <command>
 
