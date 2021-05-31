@@ -33,20 +33,27 @@ class BaseCommand:
 		self.name = ''
 		self.help = ''
 		self.description = ''
-		self.tokens = list()
-	
-	def set(self, tokens: list) -> RetVal:
-		'''Sets the input and does some basic validation'''
 
-		if not tokens:
-			self.tokens = list()
+		# Argument-handling attributes
+		self.rawcmd = ''
+		self.tokens = list()
+		self.args = dict()
+
+		self.splitter = re.compile(r'\"(?:\%\"|[^\"])*\"|\"[^\"]*\"|[^\s\"]+')
+
+	def set(self, command: str) -> RetVal:
+		'''Sets the input and does some basic validation. This method expects the entire raw 
+		command, including the command name.'''
+
+		if not command:
+			self.args = dict()
 		
-		if not isinstance(tokens, list):
-			return RetVal(ErrBadType, 'command tokens not a list')
+		if not isinstance(command, str):
+			return RetVal(ErrBadType, 'command not a string')
 		
-		self.tokens = tokens
-				
-		return RetVal()
+		self.rawcmd = command
+			
+		return self._parse_command()
 	
 	def get_aliases(self):
 		'''Returns a dictionary of alternative names for the command'''
@@ -65,6 +72,18 @@ double quotes have been stripped. Subclasses are expected to return a list
 containing matches.'''
 
 		return list()
+
+	def _parse_command(self) -> RetVal:
+		'''Takes the raw command line passed to it and turns it into arguments'''
+		raw_tokens = re.findall(self.splitter, self.rawcmd.strip())
+		if raw_tokens:
+			del raw_tokens[0]
+		
+		self.tokens = list()
+		for token in raw_tokens:
+			self.tokens.append(token.strip('"').replace('%"','"'))
+
+		return RetVal()
 
 
 class FilespecBaseCommand(BaseCommand):

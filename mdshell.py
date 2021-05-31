@@ -42,16 +42,12 @@ class Shell:
 	def __init__(self):
 		init_commands()
 		self.state = ShellState()
-		
-		self.lexer = re.compile(r'"[^"]+"|\S+')
 
 	def Prompt(self):
 		'''Begins the prompt loop.'''
 		session = PromptSession()
 		commandCompleter = ThreadedCompleter(ShellCompleter(self.state))
 		
-		split_pattern = re.compile(r'\"(?:\%\"|[^\"])*\"|\"[^\"]*\"|[^\s\"]+')
-
 		while True:
 			try:
 				raw_input = session.prompt(HTML('🐧<yellow><b> > </b></yellow>' ),
@@ -61,17 +57,13 @@ class Shell:
 			except EOFError:
 				break
 			else:
-				raw_tokens = re.findall(split_pattern, raw_input.strip())
+				tokens = raw_input.strip().split(' ')
 				
-				tokens = list()
-				for token in raw_tokens:
-					tokens.append(token.strip('"').replace('%"','"'))
-
 				if not tokens:
 					continue
 				
 				cmd = get_command(tokens[0])
-				status = cmd.set(tokens[1:])
+				status = cmd.set(raw_input)
 				if status.error():
 					print(f"BUG: error setting info for command: {status.error()} / " +
 							f"{status.info()}")
