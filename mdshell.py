@@ -53,10 +53,11 @@ if __name__ == '__main__':
 		except EOFError:
 			break
 		else:
-			tokens = raw_input.strip().split(' ')
-			
-			if not tokens:
+			raw_input = raw_input.strip()
+			if not raw_input:
 				continue
+			
+			tokens = raw_input.split(' ')
 			
 			cmd = get_command(tokens[0])
 			status = cmd.set(raw_input)
