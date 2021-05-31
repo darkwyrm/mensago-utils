@@ -67,6 +67,13 @@ class BaseCommand:
 			
 		return self._tokenize()
 	
+	def validate(self) -> RetVal:
+		'''A hook function implemented by child classes to validate input from the command line 
+		so that execute() only need be concerned with performing the requested action. It is called 
+		once the raw command line is tokenized. The value returned is sent directly to the main 
+		event loop -- any validation errors can be placed in the return value's info field.'''
+		return RetVal()
+
 	def get_aliases(self):
 		'''Returns a dictionary of alternative names for the command'''
 
@@ -106,7 +113,7 @@ containing matches.'''
 			
 			self.tokens.append(token)
 
-		return RetVal()
+		return self.validate()
 
 
 class FilespecBaseCommand(BaseCommand):
