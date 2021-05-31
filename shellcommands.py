@@ -149,10 +149,12 @@ class CommandListDir(BaseCommand):
 
 	def execute(self, shellstate: ShellState) -> RetVal:
 		if sys.platform == 'win32':
-			tokens = ['dir','/w'].extend(self.tokens)
+			tokens = ['dir','/w']
+			tokens.extend(self.tokens)
 			subprocess.call(tokens, shell=True)
 		else:
-			tokens = ['ls','--color=auto'].extend(self.tokens)
+			tokens = ['ls','--color=auto']
+			tokens.extend(self.tokens)
 			subprocess.call(tokens)
 		
 		return RetVal()
@@ -319,7 +321,7 @@ class CommandRegister(BaseCommand):
 		self.description = 'Register a new account on the connected server.'
 
 	def execute(self, shellstate: ShellState) -> RetVal:
-		if len(self.tokens) != 1:
+		if len(self.tokens) not in [1,2]:
 			return RetVal(ErrOK, self.help)
 		
 		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
