@@ -6,7 +6,7 @@ import os
 import re
 
 from pymensago.client import MensagoClient
-from retval import ErrBadType, RetVal
+from retval import ErrBadType, ErrBadValue, RetVal
 
 # This global is needed for meta commands, such as Help. Do not access this list directly unless
 # there is literally no other option.
@@ -36,7 +36,19 @@ class BaseCommand:
 
 		# Argument-handling attributes
 		self.rawcmd = ''
+
+		# Contains an ordered list of raw tokens. This makes commands simple commands which only
+		# have an optional argument or a fixed list of arguments easy to write.
 		self.tokens = list()
+
+		# Named arguments. More complex commands can use this to have multiple optional arguments
+		# where order doesn't matter. The two can even be mixed, but all named arguments need to be
+		# placed after the ordered ones because they are removed from the token list.
+		#
+		# `cmd foo bar spam=eggs` -> self.tokens = ['foo', 'bar'], self.args = ['spam':'eggs']
+		#
+		# Named arguments which need quoting should have quotes around the entire thing:
+		# `cmd foo "bar=spam eggs"`
 		self.args = dict()
 
 		self.splitter = re.compile(r'\"(?:\%\"|[^\"])*\"|\"[^\"]*\"|[^\s\"]+')
@@ -53,7 +65,7 @@ class BaseCommand:
 		
 		self.rawcmd = command
 			
-		return self._parse_command()
+		return self._tokenize()
 	
 	def get_aliases(self):
 		'''Returns a dictionary of alternative names for the command'''
@@ -73,15 +85,26 @@ containing matches.'''
 
 		return list()
 
-	def _parse_command(self) -> RetVal:
-		'''Takes the raw command line passed to it and turns it into arguments'''
+	def _tokenize(self) -> RetVal:
+		'''Takes the raw command line passed to it, splits it into an ordered list of tokens, and 
+		places them in self.tokens. This method handles double-quotes for encapsulating arguments 
+		and escaping a quotation mark within them using a %, i.e. `cmd "foo %"bar%""` yields the 
+		tokens `cmd` and `foo "bar"`. '''
 		raw_tokens = re.findall(self.splitter, self.rawcmd.strip())
 		if raw_tokens:
 			del raw_tokens[0]
 		
 		self.tokens = list()
-		for token in raw_tokens:
-			self.tokens.append(token.strip('"').replace('%"','"'))
+		for i in range(len(raw_tokens)):
+			token = raw_tokens[i].strip('"').replace('%"','"')
+			if '=' in token:
+				parts = token.split('=', 1)
+				# A token like `=foo` will not be treated as a key=value pair.
+				if parts[0]:
+					self.args[parts[0]] = parts[1]
+					continue
+			
+			self.tokens.append(token)
 
 		return RetVal()
 
