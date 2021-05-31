@@ -16,7 +16,6 @@ def init_commands():
 	add_command(shellcommands.CommandPreregister())
 	add_command(shellcommands.CommandProfile())
 	add_command(shellcommands.CommandRegister())
-	add_command(shellcommands.CommandSetUserID())
 
 	global __all_names
 	__all_names.sort()

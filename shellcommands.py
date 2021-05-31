@@ -401,38 +401,3 @@ class CommandShell(BaseCommand):
 			status.set_info(f"Error running command: {str(e)}")
 		
 		return status
-
-
-class CommandSetUserID(BaseCommand):
-	'''Sets the workspace's user ID'''
-	def __init__(self):
-		super().__init__()
-		self.name = 'setuser_id'
-		self.help = helptext.setuserid_cmd
-		self.description = 'Set user id for workspace'
-
-	def execute(self, shellstate: ShellState) -> RetVal:
-		if len(self.tokens) != 1:
-			print(self.help)
-			return ''
-		
-		if '"' in self.tokens[0] or "/" in self.tokens[0]:
-			return RetVal(ErrBadData, 'A user id may not contain " or /.')
-		
-		p = shellstate.client.get_active_profile()
-		worklist = p.get_workspaces()
-		user_wksp = None
-		for w in worklist:
-			if w.type == 'single':
-				user_wksp = w
-				break
-		
-		if not user_wksp:
-			return RetVal(ErrNotFound, "Couldn't find the identity workspace for the profile.")
-		
-		status = user_wksp.set_user_id(self.tokens[0])
-		if status.error():
-			status.set_info(f"Error setting user ID:  {status.error()} / {status.info()}")
-		else:
-			status.set_info(f"Mensago address is now {user_wksp.uid}/{user_wksp.domain}")
-		return status 
