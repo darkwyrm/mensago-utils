@@ -2,18 +2,18 @@ from shellbase import BaseCommand
 import sys
 
 import iscmds
-import shellcommands 
+import shellcmds 
 
 __aliases = dict()
 __all_names = list()
 
 def init_commands():
-	add_command(shellcommands.CommandChDir())
-	add_command(shellcommands.CommandListDir())
-	add_command(shellcommands.CommandExit())
-	add_command(shellcommands.CommandHelp())
-	add_command(shellcommands.CommandShell())
-	add_command(shellcommands.CommandProfile())
+	add_command(shellcmds.CommandChDir())
+	add_command(shellcmds.CommandListDir())
+	add_command(shellcmds.CommandExit())
+	add_command(shellcmds.CommandHelp())
+	add_command(shellcmds.CommandShell())
+	add_command(shellcmds.CommandProfile())
 
 	add_command(iscmds.CommandPreregister())
 	add_command(iscmds.CommandRegister())
@@ -27,7 +27,7 @@ def add_command(cmd: BaseCommand):
 
 	global __all_names, __aliases
 
-	shellcommands.gShellCommands[cmd.name] = cmd
+	shellcmds.gShellCommands[cmd.name] = cmd
 	__all_names.append(cmd.name)
 	
 	for k,v in cmd.get_aliases().items():
@@ -44,15 +44,15 @@ def get_command(name: str):
 	global __aliases
 
 	if len(name) < 1:
-		return shellcommands.CommandEmpty()
+		return shellcmds.CommandEmpty()
 
 	if name in __aliases:
 		name = __aliases[name]
 
-	if name in shellcommands.gShellCommands:
-		return shellcommands.gShellCommands[name]
+	if name in shellcmds.gShellCommands:
+		return shellcmds.gShellCommands[name]
 
-	return shellcommands.CommandUnrecognized()
+	return shellcmds.CommandUnrecognized()
 
 
 def get_command_names():
