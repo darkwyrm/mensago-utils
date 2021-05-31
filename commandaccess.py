@@ -1,6 +1,7 @@
 from shellbase import BaseCommand
 import sys
 
+import iscmds
 import shellcommands 
 
 __aliases = dict()
@@ -12,10 +13,10 @@ def init_commands():
 	add_command(shellcommands.CommandExit())
 	add_command(shellcommands.CommandHelp())
 	add_command(shellcommands.CommandShell())
-
-	add_command(shellcommands.CommandPreregister())
 	add_command(shellcommands.CommandProfile())
-	add_command(shellcommands.CommandRegister())
+
+	add_command(iscmds.CommandPreregister())
+	add_command(iscmds.CommandRegister())
 
 	global __all_names
 	__all_names.sort()
