@@ -14,6 +14,7 @@ def init_commands():
 	add_command(shellcmds.CommandHelp())
 	add_command(shellcmds.CommandShell())
 	add_command(shellcmds.CommandProfile())
+	add_command(shellcmds.CommandResetDB())
 
 	add_command(iscmds.CommandPreregister())
 	add_command(iscmds.CommandRegister())

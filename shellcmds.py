@@ -16,6 +16,7 @@ import pymensago.errorcodes as errorcodes
 from pymensago.utils import validate_userid
 
 import helptext
+import server_reset
 from shellbase import BaseCommand, gShellCommands, ShellState
 
 class CommandEmpty(BaseCommand):
@@ -309,3 +310,26 @@ class CommandShell(BaseCommand):
 			status.set_info(f"Error running command: {str(e)}")
 		
 		return status
+
+
+class CommandResetDB(BaseCommand):
+	'''Dev command to reset the server database'''
+	def __init__(self):
+		super().__init__()
+		self.name = 'resetdb'
+		self.help = helptext.resetdb_cmd
+		self.description = 'DEVELOPER: Completely resets the local Mensago database'
+	
+	def execute(self, shellstate: ShellState) -> RetVal:
+		choice = input("This will delete ALL DATA in the local database.\n"
+						"Are you sure? [y/N] ").casefold()
+		
+		if choice not in ['y', 'Y']:
+			return RetVal()
+
+		data = server_reset.reset()
+
+		return RetVal(ErrOK, f"Administrator workspace: {data['admin']}\n"
+							f"Administrator registration code: {data['admin_regcode']}\n"
+							f"Abuse workspace (forwarded): {data['abuse']}\n"
+							f"Support workspace (forwarded): {data['support']}\n")

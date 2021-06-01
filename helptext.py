@@ -56,6 +56,21 @@ Depending on the registration type set on the server, this command may return
 a status other than success or failure. If a server immediately creates a new 
 workspace account, this command will print the new numeric address created.'''
 
+resetdb_cmd = '''Usage: resetdb
+
+WARNING: THIS COMMAND WILL CAUSE IRREVERSIBLE DATA LOSS. DO NOT RUN THIS UNLESS 
+YOU KNOW WHAT YOU ARE DOING. Run this command at your own peril.
+
+This developer command purges the Mensago database and resets it to a basic 
+state of initialization. The server configuration is not changed. A new 
+administrator account generated and the updated configuration is printed to 
+the console. The workspace data hierarchy is also reset to a pristine state. 
+
+NOTE: This command assumes you have filesystem permissions in the workspace 
+directory hierarchy. Either run this utility with administrator permissions or 
+set the filesystem permissions for the workspace directory accordingly.
+'''
+
 shell_cmd = '''Usage: shell <command>
 
 Executes a command directly in the regular user shell. On Windows, this is 
