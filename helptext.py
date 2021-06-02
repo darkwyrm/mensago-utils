@@ -3,17 +3,23 @@ ensure the code remains easy to read.'''
 
 login_cmd = '''Usage: login [address]
 
-Log into a server once connected. The address used may be the regular Mensago
-address (catlover/example.com) or the workspace address
-(e.g. 557207fd-0a0a-45bb-a402-c38461251f8f). Because multiple domains could be
-hosted by the same server, it is necessary to give the entire workspace
-address. Note that if the address is omitted, the command is assumed to log
+Log into a server. The address used may be the regular Mensago 
+address (catlover/example.com) or the workspace address 
+(e.g. 557207fd-0a0a-45bb-a402-c38461251f8f). Because multiple domains could be 
+hosted by the same server, it is necessary to give the entire workspace 
+address. Note that if the address is omitted, the command is assumed to log 
 into main account for the profile.
 
 Examples:
 login f009338a-ea14-4d59-aa48-016829835cd7/example.com
 login CatLover/example.com
 login
+'''
+
+logout_cmd = '''Usage: logout
+
+Logs out of a server connection. This command does nothing and returns no 
+error if not connected.
 '''
 
 preregister_cmd='''Usage: preregister <port_number> [user_id]
@@ -46,6 +52,14 @@ setdefault <name> - sets the profile to be loaded on startup. If only one
 profile exists, this action has no effect.
 
 set <name> - activates the specified profile and deactivates the current one.'''
+
+regcode_cmd = '''Usage: regcode <address> <code> [<password>]
+
+Complete registration started by an administrator. This will involved setting 
+a login password for the account. Like the `register` command, the desired 
+password may be specified from the command line if shoulder-surfing is not a 
+concern.
+'''
 
 register_cmd = '''Usage: register <server> [userid=<userid>] [password=<password>]
 
