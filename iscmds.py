@@ -17,6 +17,30 @@ from pymensago.utils import validate_userid
 import helptext
 from shellbase import BaseCommand, gShellCommands, ShellState
 
+class CommandLogin(BaseCommand):
+	'''Logs into the specified server'''
+	def __init__(self):
+		super().__init__()
+		self.name = 'login'
+		# self.help = helptext.login_cmd
+		self.description = 'Logs into the specified server'
+		
+	def execute(self, shellstate: ShellState) -> RetVal:
+		return RetVal(ErrUnimplemented)
+
+
+class CommandLogout(BaseCommand):
+	'''Logs out of the currently-connected server'''
+	def __init__(self):
+		super().__init__()
+		self.name = 'login'
+		# self.help = helptext.logout_cmd
+		self.description = 'Logs out of the currently-connected server'
+		
+	def execute(self, shellstate: ShellState) -> RetVal:
+		return RetVal(ErrUnimplemented)
+
+
 class CommandPreregister(BaseCommand):
 	'''Preregister an account for someone'''
 	def __init__(self):
@@ -134,3 +158,17 @@ class CommandRegister(BaseCommand):
 			else:
 				print("Passwords do not match.")
 
+
+class CommandRegCode(BaseCommand):
+	'''Finish registration of an account with a registration code'''
+	def __init__(self):
+		super().__init__()
+		self.name = 'regcode'
+		# self.help = helptext.regcode_cmd
+		self.description = 'Finish registration of an account with a registration code'
+	
+	def validate(self) -> RetVal:
+		return super().validate()
+		
+	def execute(self, shellstate: ShellState) -> RetVal:
+		return RetVal(ErrUnimplemented)
