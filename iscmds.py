@@ -8,11 +8,13 @@ import subprocess
 import sys
 
 from prompt_toolkit import print_formatted_text, HTML
-from retval import ErrBadData, ErrBadValue, ErrEmptyData, ErrNotFound, ErrOK, ErrServerError, ErrUnimplemented, RetVal
+from retval import RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
+	ErrUnimplemented
 
 from pymensago.encryption import check_password_complexity
 import pymensago.errorcodes as errorcodes
-from pymensago.utils import validate_userid
+import pymensago.iscmds
+from pymensago.utils import validate_userid, MAddress
 
 import helptext
 from shellbase import BaseCommand, gShellCommands, ShellState
@@ -22,7 +24,7 @@ class CommandLogin(BaseCommand):
 	def __init__(self):
 		super().__init__()
 		self.name = 'login'
-		# self.help = helptext.login_cmd
+		self.help = helptext.login_cmd
 		self.description = 'Logs into the specified server'
 		
 	def execute(self, shellstate: ShellState) -> RetVal:
@@ -34,11 +36,11 @@ class CommandLogout(BaseCommand):
 	def __init__(self):
 		super().__init__()
 		self.name = 'login'
-		# self.help = helptext.logout_cmd
+		self.help = helptext.logout_cmd
 		self.description = 'Logs out of the currently-connected server'
 		
 	def execute(self, shellstate: ShellState) -> RetVal:
-		return RetVal(ErrUnimplemented)
+		return shellstate.client.logout()
 
 
 class CommandPreregister(BaseCommand):
@@ -51,8 +53,7 @@ class CommandPreregister(BaseCommand):
 		
 	def execute(self, shellstate: ShellState) -> RetVal:
 		if len(self.tokens) > 2 or len(self.tokens) == 0:
-			print(self.help)
-			return ''
+			return RetVal(ErrBadData, self.help)
 		
 		try:
 			port = int(self.tokens[0])
@@ -109,9 +110,10 @@ class CommandRegister(BaseCommand):
 	def execute(self, shellstate: ShellState) -> RetVal:
 		
 		if 'password' not in self.args:
-			self._setpassword_interactive()
-			if 'password' not in self.args:
+			password = _setpassword_interactive()
+			if not password:
 				return RetVal()
+			self.args['password'] = password
 
 		status = shellstate.client.register_account(self.tokens[0], self.args['password'], 
 													self.args['userid'])
@@ -135,40 +137,55 @@ class CommandRegister(BaseCommand):
 		
 		return RetVal(ErrUnimplemented, 'Registration not completely implemented')
 
-	def _setpassword_interactive(self):
-		print("Please enter a passphrase. Please use at least 10 characters with a combination " \
-			"of uppercase and lowercase letters and preferably a number and/or symbol. You can "
-			"even use non-English letters, such as ß, ñ, Ω, and Ç! Leading and trailing spaces "
-			"will be stripped.")
-		
-		while True:
-			password = getpass("Password: ").strip()
-			if not password:
-				return
-			
-			confirmation = getpass("Confirm password: ").strip()
-			if password == confirmation:
-				status = check_password_complexity(password)
-				if status['strength'] in [ 'very weak', 'weak' ]:
-					print("Unfortunately, the password you entered was too weak. Please " \
-							"use another.")
-					continue
-				self.args['password'] = password
-				break
-			else:
-				print("Passwords do not match.")
-
-
 class CommandRegCode(BaseCommand):
 	'''Finish registration of an account with a registration code'''
 	def __init__(self):
 		super().__init__()
 		self.name = 'regcode'
-		# self.help = helptext.regcode_cmd
+		self.help = helptext.regcode_cmd
 		self.description = 'Finish registration of an account with a registration code'
 	
 	def validate(self) -> RetVal:
-		return super().validate()
+		if len(self.tokens) not in [2, 3]:
+			return RetVal(ErrBadData, self.help)
+
+		addr = MAddress()
+		status = addr.set(self.tokens[0])
+		if status.error():
+			return RetVal(ErrBadValue, 'Invalid address')
+		
+		if len(self.tokens) == 3:
+			self.args['password'] = self.tokens[2]
 		
 	def execute(self, shellstate: ShellState) -> RetVal:
+		if 'password' not in self.args:
+			password = _setpassword_interactive()
+			if not password:
+				return RetVal()
+			self.args['password'] = password
+		
+		
 		return RetVal(ErrUnimplemented)
+
+
+def _setpassword_interactive(self):
+	print("Please enter a passphrase. Please use at least 10 characters with a combination " \
+		"of uppercase and lowercase letters and preferably a number and/or symbol. You can "
+		"even use non-English letters, such as ß, ñ, Ω, and Ç! Leading and trailing spaces "
+		"will be stripped.")
+	
+	while True:
+		password = getpass("Password: ").strip()
+		if not password:
+			return
+		
+		confirmation = getpass("Confirm password: ").strip()
+		if password == confirmation:
+			status = check_password_complexity(password)
+			if status['strength'] in [ 'very weak', 'weak' ]:
+				print("Unfortunately, the password you entered was too weak. Please " \
+						"use another.")
+				continue
+			return password
+		else:
+			print("Passwords do not match.")
