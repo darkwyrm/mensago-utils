@@ -157,6 +157,8 @@ class CommandRegCode(BaseCommand):
 		if len(self.tokens) == 3:
 			self.args['password'] = self.tokens[2]
 		
+		return RetVal()
+		
 	def execute(self, shellstate: ShellState) -> RetVal:
 		if 'password' not in self.args:
 			password = _setpassword_interactive()
@@ -168,7 +170,7 @@ class CommandRegCode(BaseCommand):
 		return RetVal(ErrUnimplemented)
 
 
-def _setpassword_interactive(self):
+def _setpassword_interactive():
 	print("Please enter a passphrase. Please use at least 10 characters with a combination " \
 		"of uppercase and lowercase letters and preferably a number and/or symbol. You can "
 		"even use non-English letters, such as ß, ñ, Ω, and Ç! Leading and trailing spaces "
