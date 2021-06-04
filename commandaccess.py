@@ -16,7 +16,10 @@ def init_commands():
 	add_command(shellcmds.CommandProfile())
 	add_command(shellcmds.CommandResetDB())
 
+	add_command(iscmds.CommandLogin())
+	add_command(iscmds.CommandLogout())
 	add_command(iscmds.CommandPreregister())
+	add_command(iscmds.CommandRegCode())
 	add_command(iscmds.CommandRegister())
 
 	global __all_names
