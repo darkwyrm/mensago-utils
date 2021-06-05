@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Calculate some helpful keycard scalability statistics
 
 import secrets
