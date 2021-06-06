@@ -13,10 +13,10 @@ from shellbase import ShellState
 
 class ShellCompleter(Completer):
 	'''Class for handling command autocomplete'''
-	def __init__(self, pshell_state):
+	def __init__(self, shell_state):
 		Completer.__init__(self)
 		self.lexer = re.compile(r'"[^"]+"|"[^"]+$|[\S\[\]]+')
-		self.shell = pshell_state
+		self.shell = shell_state
 
 	def get_completions(self, document, complete_event):
 		tokens = self.lexer.findall(document.current_line_before_cursor.strip())
@@ -64,7 +64,12 @@ if __name__ == '__main__':
 			if status.error():
 				print(status.info())
 				continue
-
+			
+			status = cmd.validate(shellstate)
+			if status.error():
+				print(status.info())
+				continue
+			
 			status = cmd.execute(shellstate)
 			if status.info():
 				print_formatted_text(status.info())

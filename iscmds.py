@@ -1,23 +1,17 @@
 '''Contains the implementations for shell commands'''
-import collections
 from getpass import getpass
-from glob import glob
-import os
-import platform
-import subprocess
-import sys
 
-from prompt_toolkit import print_formatted_text, HTML
+from pycryptostring import CryptoString
 from retval import RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
 	ErrUnimplemented
 
 from pymensago.encryption import check_password_complexity
-import pymensago.errorcodes as errorcodes
-import pymensago.iscmds
+import pymensago.iscmds as iscmds
+from pymensago.kcresolver import get_mgmt_record
 from pymensago.utils import validate_userid, MAddress
 
 import helptext
-from shellbase import BaseCommand, gShellCommands, ShellState
+from shellbase import BaseCommand, ShellState
 
 class CommandLogin(BaseCommand):
 	'''Logs into the specified server'''
@@ -26,8 +20,42 @@ class CommandLogin(BaseCommand):
 		self.name = 'login'
 		self.help = helptext.login_cmd
 		self.description = 'Logs into the specified server'
+
+	def validate(self, shellstate: ShellState) -> RetVal:
+		if len(self.tokens) > 1:
+			return (ErrBadValue, self.help)
+		
+		if len(self.tokens) == 1:
+			addr = MAddress(self.tokens[0])
+			if not addr.is_valid():
+				return RetVal(ErrBadValue, 'Invalid address')
+
+		status = shellstate.client.pman.get_active_profile()
+		if status.error():
+			return status
+		
+		return RetVal()
 		
 	def execute(self, shellstate: ShellState) -> RetVal:
+		addr = MAddress()
+		if len(self.tokens) == 0:
+			status = shellstate.client.pman.get_active_profile()
+			profile = status['profile']
+			addr.set(profile.address())
+		else:
+			addr.set(self.tokens[0])
+		
+		status = shellstate.client.kcr.resolve_address(addr)
+		if status.error():
+			return status
+		wid = status['Workspace-ID']
+		status = get_mgmt_record(addr.domain)
+		if status.error():
+			return status
+		
+		orgkey = CryptoString(status['pvk'])
+		status = iscmds.login(shellstate.client.conn, wid, orgkey)
+
 		return RetVal(ErrUnimplemented)
 
 
@@ -35,7 +63,7 @@ class CommandLogout(BaseCommand):
 	'''Logs out of the currently-connected server'''
 	def __init__(self):
 		super().__init__()
-		self.name = 'login'
+		self.name = 'logout'
 		self.help = helptext.logout_cmd
 		self.description = 'Logs out of the currently-connected server'
 		
@@ -89,7 +117,7 @@ class CommandRegister(BaseCommand):
 		self.help = helptext.register_cmd
 		self.description = 'Register a new account on the connected server.'
 
-	def validate(self) -> RetVal:
+	def validate(self, shellstate: ShellState) -> RetVal:
 		if not self.tokens:
 			return RetVal(ErrEmptyData, 'A server must be specified.')
 
@@ -145,7 +173,7 @@ class CommandRegCode(BaseCommand):
 		self.help = helptext.regcode_cmd
 		self.description = 'Finish registration of an account with a registration code'
 	
-	def validate(self) -> RetVal:
+	def validate(self, shellstate: ShellState) -> RetVal:
 		if len(self.tokens) not in [2, 3]:
 			return RetVal(ErrBadData, self.help)
 

@@ -67,7 +67,7 @@ class BaseCommand:
 			
 		return self._tokenize()
 	
-	def validate(self) -> RetVal:
+	def validate(self, shellstate: ShellState) -> RetVal:
 		'''A hook function implemented by child classes to validate input from the command line 
 		so that execute() only need be concerned with performing the requested action. It is called 
 		once the raw command line is tokenized. The value returned is sent directly to the main 
@@ -79,12 +79,12 @@ class BaseCommand:
 
 		return dict()
 	
-	def execute(self, pshell_state: ShellState) -> RetVal:
+	def execute(self, shellstate: ShellState) -> RetVal:
 		'''The base class purposely does nothing. To be implemented by subclasses'''
 
 		return ''
 	
-	def autocomplete(self, ptokens: list, pshell_state: ShellState) -> list:
+	def autocomplete(self, ptokens: list, shellstate: ShellState) -> list:
 		'''Subclasses implement whatever is needed for their specific case. ptokens 
 contains all tokens from the raw input except the name of the command. All 
 double quotes have been stripped. Subclasses are expected to return a list 
@@ -113,7 +113,7 @@ containing matches.'''
 			
 			self.tokens.append(token)
 
-		return self.validate()
+		return RetVal()
 
 
 class FilespecBaseCommand(BaseCommand):
