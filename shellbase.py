@@ -92,6 +92,13 @@ containing matches.'''
 
 		return list()
 
+	def _ensure_connection(self, domain: str, shellstate: ShellState) -> RetVal:
+		'''Ensures that the client is connected to a server'''
+		if shellstate.client.conn.is_connected():
+			return RetVal()
+		
+		return shellstate.client.connect(domain)
+
 	def _tokenize(self) -> RetVal:
 		'''Takes the raw command line passed to it, splits it into an ordered list of tokens, and 
 		places them in self.tokens. This method handles double-quotes for encapsulating arguments 
