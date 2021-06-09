@@ -2,7 +2,8 @@
 from getpass import getpass
 
 from pycryptostring import CryptoString
-from retval import RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
+from pymensago.workspace import Workspace
+from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
 	ErrUnimplemented
 
 from pymensago.encryption import check_password_complexity
@@ -44,7 +45,11 @@ class CommandLogin(BaseCommand):
 			addr.set(profile.address())
 		else:
 			addr.set(self.tokens[0])
-		
+
+		status = self._ensure_connection(addr.domain)
+		if status.error():
+			return status
+
 		status = shellstate.client.kcr.resolve_address(addr)
 		if status.error():
 			return status
@@ -54,9 +59,7 @@ class CommandLogin(BaseCommand):
 			return status
 		
 		orgkey = CryptoString(status['pvk'])
-		status = iscmds.login(shellstate.client.conn, wid, orgkey)
-
-		return RetVal(ErrUnimplemented)
+		return iscmds.login(shellstate.client.conn, wid, orgkey)
 
 
 class CommandLogout(BaseCommand):
@@ -177,6 +180,14 @@ class CommandRegCode(BaseCommand):
 		if len(self.tokens) not in [2, 3]:
 			return RetVal(ErrBadData, self.help)
 
+		# Check to make sure we have a profile before we do anything
+		status = shellstate.client.pman.get_active_profile()
+		if status.error():
+			return status
+		profile = status['profile']
+		if profile.wid:
+			return RetVal(ErrExists, 'An identity has already been assigned to this profile.')
+		
 		addr = MAddress()
 		status = addr.set(self.tokens[0])
 		if status.error():
@@ -191,11 +202,39 @@ class CommandRegCode(BaseCommand):
 		if 'password' not in self.args:
 			password = _setpassword_interactive()
 			if not password:
+				# Allow the user to cancel this command from within the password prompt
 				return RetVal()
 			self.args['password'] = password
 		
+		addr = MAddress(self.tokens[0])
+		status = self._ensure_connection(addr.domain, shellstate)
+		if status.error():
+			return status
 		
-		return RetVal(ErrUnimplemented)
+		status = shellstate.client.pman.get_active_profile()
+		if status.error():
+			return status
+		profile = status['profile']
+
+		status = shellstate.client.redeem_regcode(addr, self.tokens[1], password)
+		if status.error():
+			return status
+
+		profile.wid = status['wid']
+		profile.domain = addr.domain
+
+		uid = ''
+		if addr.id_type == 2:
+			uid = addr.id
+		w = Workspace()
+		status = w.generate(uid, addr.domain, profile.wid, status['password'])
+		if status.error():
+			return status
+		status = profile.set_identity(w)
+		if status.error():
+			return status
+
+		return RetVal(ErrOK, 'Registration code redeemed successfully')
 
 
 def _setpassword_interactive():
