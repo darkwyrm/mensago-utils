@@ -9,7 +9,7 @@ from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, Err
 from pymensago.encryption import check_password_complexity
 import pymensago.iscmds as iscmds
 from pymensago.kcresolver import get_mgmt_record
-from pymensago.utils import validate_userid, MAddress
+from pymensago.utils import MAddress
 
 import helptext
 from shellbase import BaseCommand, ShellState
@@ -131,7 +131,7 @@ class CommandRegister(BaseCommand):
 					'Please use another.')
 		
 		if 'userid' in self.args:
-			if not validate_userid(self.args['userid']):
+			if not MAddress(self.args['userid']).is_valid():
 				return RetVal(ErrBadValue, 'The user ID given is not valid')
 		else:
 			self.args['userid'] = ''

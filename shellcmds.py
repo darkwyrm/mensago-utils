@@ -9,11 +9,9 @@ import subprocess
 import sys
 
 from prompt_toolkit import print_formatted_text, HTML
-from retval import ErrBadData, ErrBadValue, ErrEmptyData, ErrNotFound, ErrOK, ErrServerError, ErrUnimplemented, RetVal
+from retval import ErrEmptyData, ErrNotFound, ErrOK, ErrUnimplemented, RetVal
 
-from pymensago.encryption import check_password_complexity
 import pymensago.errorcodes as errorcodes
-from pymensago.utils import validate_userid
 
 import helptext
 import server_reset
