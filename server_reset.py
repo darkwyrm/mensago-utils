@@ -238,7 +238,7 @@ def populate_database(conn, config) -> dict:
 
 	cur.execute(f"INSERT INTO orgkeys(creationtime, pubkey, privkey, purpose, fingerprint) "
 				"VALUES(%s,%s,%s,'sign',%s);",
-				(timestamp, str(pspair.public), str(pspair.sign), str(pspair.pubhash)))
+				(timestamp, str(pspair.public), str(pspair.private), str(pspair.pubhash)))
 
 	rootentry = keycard.OrgEntry()
 	rootentry.set_fields({
