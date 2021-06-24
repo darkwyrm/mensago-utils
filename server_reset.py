@@ -315,7 +315,7 @@ def populate_database(conn, config) -> dict:
 
 	cur.execute("INSERT INTO keycards(owner, creationtime, index, entry, fingerprint) "
 				"VALUES(%s, %s, %s, %s, %s);",
-				(config['global']['domain'], rootentry.fields['Timestamp'], 
+				('organization', rootentry.fields['Timestamp'], 
 				rootentry.fields['Index'], str(rootentry), rootentry.hash)
 				)
 
