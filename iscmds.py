@@ -6,7 +6,7 @@ from pymensago.workspace import Workspace
 from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
 	ErrUnimplemented
 
-from pymensago.encryption import check_password_complexity
+from pymensago.encryption import Password, check_password_complexity
 import pymensago.iscmds as iscmds
 from pymensago.kcresolver import get_mgmt_record
 from pymensago.utils import MAddress
@@ -46,7 +46,7 @@ class CommandLogin(BaseCommand):
 		else:
 			addr.set(self.tokens[0])
 
-		status = self._ensure_connection(addr.domain)
+		status = self._ensure_connection(addr.domain, shellstate)
 		if status.error():
 			return status
 
@@ -54,7 +54,7 @@ class CommandLogin(BaseCommand):
 		if status.error():
 			return status
 		wid = status['Workspace-ID']
-		status = get_mgmt_record(addr.domain)
+		status = get_mgmt_record(addr.domain.as_string())
 		if status.error():
 			return status
 		
@@ -200,11 +200,11 @@ class CommandRegCode(BaseCommand):
 		
 	def execute(self, shellstate: ShellState) -> RetVal:
 		if 'password' not in self.args:
-			password = _setpassword_interactive()
-			if not password:
+			pw = _setpassword_interactive()
+			if not pw:
 				# Allow the user to cancel this command from within the password prompt
 				return RetVal()
-			self.args['password'] = password
+			self.args['password'] = pw
 		
 		addr = MAddress(self.tokens[0])
 		status = self._ensure_connection(addr.domain, shellstate)
@@ -216,21 +216,7 @@ class CommandRegCode(BaseCommand):
 			return status
 		profile = status['profile']
 
-		status = shellstate.client.redeem_regcode(addr, self.tokens[1], password)
-		if status.error():
-			return status
-
-		profile.wid = status['wid']
-		profile.domain = addr.domain
-
-		uid = ''
-		if addr.id_type == 2:
-			uid = addr.id
-		w = Workspace()
-		status = w.generate(uid, addr.domain, profile.wid, status['password'])
-		if status.error():
-			return status
-		status = profile.set_identity(w)
+		status = shellstate.client.redeem_regcode(addr, self.tokens[1], self.args['password'])
 		if status.error():
 			return status
 
