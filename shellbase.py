@@ -14,7 +14,7 @@ gShellCommands = dict()
 
 class ShellState:
 	'''Stores the state of the shell'''
-	def __init__(self):
+	def __init__(self, profile_folder=''):
 		self.pwd = os.getcwd()
 		if 'OLDPWD' in os.environ:
 			self.oldpwd = os.environ['OLDPWD']
@@ -22,7 +22,7 @@ class ShellState:
 			self.oldpwd = ''
 		
 		self.aliases = dict()
-		self.client = MensagoClient()
+		self.client = MensagoClient(profile_folder)
 
 
 class BaseCommand:

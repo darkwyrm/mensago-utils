@@ -120,9 +120,8 @@ def test_listdir():
 def test_regcode():
 	'''Tests the regcode command'''
 	test_folder = setup_test(funcname())
-	shellstate = shellbase.ShellState()
+	shellstate = shellbase.ShellState(test_folder)
 	profman = userprofile.profman
-	profman.load_profiles(test_folder)
 
 	cmd = iscmds.CommandRegCode()
 	cmdlist = [ 'regcode <ADMINWID> <REGCODE> MyS3cretPassw*rd',
@@ -158,9 +157,8 @@ def test_regcode():
 def test_register():
 	'''Tests the register command'''
 	test_folder = setup_test(funcname())
-	shellstate = shellbase.ShellState()
+	shellstate = shellbase.ShellState(test_folder)
 	profman = userprofile.profman
-	profman.load_profiles(test_folder)
 
 	cmd = iscmds.CommandRegister()
 	cmdlist = [ 'register example.com "Corbin Simons" userid=csimons password=MyS3cretPassw*rd' ]
