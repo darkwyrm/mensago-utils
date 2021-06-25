@@ -1,5 +1,11 @@
 import inspect
+import os
+import platform
+
+from retval import RetVal
+
 import shellbase
+import shellcmds
 
 def funcname() -> str: 
 	frame = inspect.currentframe()
@@ -40,5 +46,52 @@ def test_parsing():
 	assert 'bar' in cmd.args and cmd.args['bar'] == 'spam eggs', \
 		f"{funcname()}: #5 failed to parse named arguments"
 
+
+def test_chdir():
+	'''Basic tests for chdir'''
+	status = RetVal()
+	shellstate = shellbase.ShellState()
+
+	cmd = shellcmds.CommandChDir()
+	cwd = os.getcwd()
+
+	if platform.system().casefold() == 'windows':
+		status = cmd.set(r'chdir C:\\')
+	else:
+		status = cmd.set(r'chdir /')
+	assert not status.error(), f"{funcname()}: set('/') failed"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('/') failed"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('/') failed"
+
+	status = cmd.set(r'chdir ~')
+	assert not status.error(), f"{funcname()}: set('~') failed"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('~') failed"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('~') failed"
+	os.chdir(cwd)
+
+
+def test_listdir():
+	'''Basic tests for listdir'''
+	status = RetVal()
+	shellstate = shellbase.ShellState()
+
+	testcmd = 'chdir'
+	testcmd = 'ls'
+	cmd = shellcmds.CommandListDir()
+	status = cmd.set(r'ls ~')
+	assert not status.error(), f"{funcname()}: set('~') failed"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('~') failed"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('~') failed"
+
+
 if __name__ == '__main__':
 	test_parsing()
+	test_chdir()
+	test_listdir()
+
