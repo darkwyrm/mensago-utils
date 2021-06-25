@@ -71,7 +71,6 @@ def test_chdir():
 	assert not status.error(), f"{funcname()}: validate('~') failed"
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: execute('~') failed"
-	os.chdir(cwd)
 
 
 def test_listdir():
@@ -79,15 +78,20 @@ def test_listdir():
 	status = RetVal()
 	shellstate = shellbase.ShellState()
 
-	testcmd = 'chdir'
-	testcmd = 'ls'
 	cmd = shellcmds.CommandListDir()
-	status = cmd.set(r'ls ~')
-	assert not status.error(), f"{funcname()}: set('~') failed"
-	status = cmd.validate(shellstate)
-	assert not status.error(), f"{funcname()}: validate('~') failed"
-	status = cmd.execute(shellstate)
-	assert not status.error(), f"{funcname()}: execute('~') failed"
+	dirlist = ['~']
+	if platform.system().casefold() == 'windows':
+		dirlist.append(r'ls C:\\')
+	else:
+		dirlist.append(r'ls /')
+	
+	for dir in dirlist:
+		status = cmd.set(dir)
+		assert not status.error(), f"{funcname()}: set('{dir}') failed"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{dir}') failed"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{dir}') failed"
 
 
 if __name__ == '__main__':

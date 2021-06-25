@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 from prompt_toolkit import print_formatted_text, HTML
-from retval import ErrEmptyData, ErrNotFound, ErrOK, ErrUnimplemented, RetVal
+from retval import ErrEmptyData, ErrFilesystemError, ErrNotFound, ErrOK, ErrUnimplemented, RetVal
 
 import pymensago.errorcodes as errorcodes
 
@@ -150,16 +150,27 @@ class CommandListDir(BaseCommand):
 		return { "dir":"ls" }
 
 	def execute(self, shellstate: ShellState) -> RetVal:
+		returncode = 0
+
+		if len(self.tokens) > 0 and self.tokens[0].startswith('~'):
+			if platform.system().casefold() == 'windows':
+				self.tokens[0] = self.tokens[0].replace('~', os.getenv('USERPROFILE'))
+			else:
+				self.tokens[0] = self.tokens[0].replace('~', os.getenv('HOME'))
+		
 		if sys.platform == 'win32':
 			tokens = ['dir','/w']
 			tokens.extend(self.tokens)
-			subprocess.call(tokens, shell=True)
+			returncode = subprocess.call(tokens, shell=True)
 		else:
 			tokens = ['ls','--color=auto']
 			tokens.extend(self.tokens)
-			subprocess.call(tokens)
+			returncode = subprocess.call(tokens)
+
+		if returncode == 0:		
+			return RetVal()
 		
-		return RetVal()
+		return RetVal(ErrFilesystemError, '')
 
 	def autocomplete(self, tokens: list, shellstate: ShellState):
 		if len(tokens) == 1:
