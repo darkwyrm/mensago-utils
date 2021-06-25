@@ -1,15 +1,38 @@
 import inspect
 import os
 import platform
+import shutil
+import time
 
+import pymensago.userprofile as userprofile
 from retval import RetVal
 
+import iscmds
+import server_reset
 import shellbase
 import shellcmds
 
 def funcname() -> str: 
-	frame = inspect.currentframe()
-	return inspect.getframeinfo(frame).function
+	frames = inspect.getouterframes(inspect.currentframe())
+	return frames[1].function
+
+
+def setup_test(name):
+	'''Creates a test folder hierarchy'''
+	test_folder = os.path.join(os.path.dirname(os.path.realpath(__file__)),'testfiles')
+	if not os.path.exists(test_folder):
+		os.mkdir(test_folder)
+
+	test_folder = os.path.join(test_folder, name)
+	while os.path.exists(test_folder):
+		try:
+			shutil.rmtree(test_folder)
+		except:
+			print("Waiting a second for test folder to unlock")
+			time.sleep(1.0)
+	os.mkdir(test_folder)
+	return test_folder
+
 
 def test_parsing():
 	'''Tests the baseline command parsing in BaseCommand'''
@@ -59,18 +82,18 @@ def test_chdir():
 		status = cmd.set(r'chdir C:\\')
 	else:
 		status = cmd.set(r'chdir /')
-	assert not status.error(), f"{funcname()}: set('/') failed"
+	assert not status.error(), f"{funcname()}: set('/') failed: {status.error()}"
 	status = cmd.validate(shellstate)
-	assert not status.error(), f"{funcname()}: validate('/') failed"
+	assert not status.error(), f"{funcname()}: validate('/') failed: {status.error()}"
 	status = cmd.execute(shellstate)
-	assert not status.error(), f"{funcname()}: execute('/') failed"
+	assert not status.error(), f"{funcname()}: execute('/') failed: {status.error()}"
 
 	status = cmd.set(r'chdir ~')
-	assert not status.error(), f"{funcname()}: set('~') failed"
+	assert not status.error(), f"{funcname()}: set('~') failed: {status.error()}"
 	status = cmd.validate(shellstate)
-	assert not status.error(), f"{funcname()}: validate('~') failed"
+	assert not status.error(), f"{funcname()}: validate('~') failed: {status.error()}"
 	status = cmd.execute(shellstate)
-	assert not status.error(), f"{funcname()}: execute('~') failed"
+	assert not status.error(), f"{funcname()}: execute('~') failed: {status.error()}"
 
 
 def test_listdir():
@@ -87,15 +110,53 @@ def test_listdir():
 	
 	for dir in dirlist:
 		status = cmd.set(dir)
-		assert not status.error(), f"{funcname()}: set('{dir}') failed"
+		assert not status.error(), f"{funcname()}: set('{dir}') failed: {status.error()}"
 		status = cmd.validate(shellstate)
-		assert not status.error(), f"{funcname()}: validate('{dir}') failed"
+		assert not status.error(), f"{funcname()}: validate('{dir}') failed: {status.error()}"
 		status = cmd.execute(shellstate)
-		assert not status.error(), f"{funcname()}: execute('{dir}') failed"
+		assert not status.error(), f"{funcname()}: execute('{dir}') failed: {status.error()}"
+
+
+def test_regcode():
+	'''Tests the regcode command'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState()
+	profman = userprofile.profman
+	profman.load_profiles(test_folder)
+
+	cmd = iscmds.CommandRegCode()
+	cmdlist = [ 'regcode <ADMINWID> <REGCODE> MyS3cretPassw*rd',
+				'regcode admin/example.com <REGCODE> MyS3cretPassw*rd' ]
+
+	for entry in cmdlist:
+		pnames = [p.name for p in profman.get_profiles()]
+		if funcname() in pnames:
+			profman.activate_profile('primary')
+			profman.delete_profile(funcname())
+		
+		profman.create_profile(funcname())
+		profman.activate_profile(funcname())
+
+		data = server_reset.reset()
+		
+		entry = entry.replace('<ADMINWID>', data['admin'])
+		entry = entry.replace('<REGCODE>', data['admin_regcode'])
+
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+	
+	status = cmd.set('regcode admin/example.com Shouldnt-Matter ThisShouldFail')
+	assert not status.error(), f"{funcname()}: final set failed"
+	status = cmd.validate(shellstate)
+	assert status.error(), f"{funcname()}: validate passed registering while an identity exists"
 
 
 if __name__ == '__main__':
 	test_parsing()
 	test_chdir()
 	test_listdir()
-
+	test_regcode()
