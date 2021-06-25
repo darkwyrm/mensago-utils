@@ -155,8 +155,39 @@ def test_regcode():
 	assert status.error(), f"{funcname()}: validate passed registering while an identity exists"
 
 
+def test_register():
+	'''Tests the register command'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState()
+	profman = userprofile.profman
+	profman.load_profiles(test_folder)
+
+	cmd = iscmds.CommandRegister()
+	cmdlist = [ 'register example.com "Corbin Simons" userid=csimons password=MyS3cretPassw*rd' ]
+	# TODO: Add other registration test cases
+
+	for entry in cmdlist:
+		pnames = [p.name for p in profman.get_profiles()]
+		if funcname() in pnames:
+			profman.activate_profile('primary')
+			profman.delete_profile(funcname())
+		
+		profman.create_profile(funcname())
+		profman.activate_profile(funcname())
+
+		server_reset.reset()
+
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+	
+
 if __name__ == '__main__':
 	test_parsing()
 	test_chdir()
 	test_listdir()
 	test_regcode()
+	test_register()

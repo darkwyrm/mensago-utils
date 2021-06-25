@@ -9,7 +9,7 @@ from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, Err
 from pymensago.encryption import Password, check_password_complexity
 import pymensago.iscmds as iscmds
 from pymensago.kcresolver import get_mgmt_record
-from pymensago.utils import MAddress
+from pymensago.utils import MAddress, UserID, Domain
 
 import helptext
 from shellbase import BaseCommand, ShellState
@@ -121,9 +121,12 @@ class CommandRegister(BaseCommand):
 		self.description = 'Register a new account on the connected server.'
 
 	def validate(self, shellstate: ShellState) -> RetVal:
-		if not self.tokens:
-			return RetVal(ErrEmptyData, 'A server must be specified.')
+		if len(self.tokens) in [0, 1]:
+			return RetVal(ErrBadData, self.help)
 
+		if not Domain(self.tokens[0]).is_valid():
+			return RetVal(ErrBadValue, f"{self.tokens[0]} isn't a valid server domain")
+		
 		if 'password' in self.args:		
 			status = check_password_complexity(self.args['password'])
 			if status['strength'] in [ 'very weak', 'weak' ]:
@@ -131,7 +134,7 @@ class CommandRegister(BaseCommand):
 					'Please use another.')
 		
 		if 'userid' in self.args:
-			if not MAddress(self.args['userid']).is_valid():
+			if not UserID(self.args['userid']).is_valid():
 				return RetVal(ErrBadValue, 'The user ID given is not valid')
 		else:
 			self.args['userid'] = ''
@@ -146,8 +149,8 @@ class CommandRegister(BaseCommand):
 				return RetVal()
 			self.args['password'] = password
 
-		status = shellstate.client.register_account(self.tokens[0], self.args['password'], 
-													self.args['userid'])
+		status = shellstate.client.register_account(Domain(self.tokens[0]), self.args['password'], 
+													UserID(self.args['userid']))
 		
 		returncodes = {
 			304:"This server does not allow self-registration.",
@@ -161,12 +164,11 @@ class CommandRegister(BaseCommand):
 		if status.error():
 			return status
 
-		# TODO: finish handling registration
-		# 1) Set friendly name for account, if applicable - SETADDR
-		# 2) Upload keycard and receive signed keycard - SIGNCARD
-		# 3) Save signed keycard to database
+		# TODO: Assign name to account
+		# TODO: Add an entry to the keycard
+		# TODO: Save signed keycard to database
 		
-		return RetVal(ErrUnimplemented, 'Registration not completely implemented')
+		return RetVal()
 
 class CommandRegCode(BaseCommand):
 	'''Finish registration of an account with a registration code'''

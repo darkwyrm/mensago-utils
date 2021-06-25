@@ -61,7 +61,14 @@ password may be specified from the command line if shoulder-surfing is not a
 concern.
 '''
 
-register_cmd = '''Usage: register <server> [userid=<userid>] [password=<password>]
+register_cmd = \
+'''Usage: register <domain> <name> userid=<userid> password=<password>
+
+domain - The domain of the organization with which you wish to register.
+
+name - Your name. Note that if you use first and last to enclose them in 
+    double quotes, e.g. `register example.com "My Name"`. If set to None or
+	none, no name will be assigned.
 
 Register a new workspace account. This command requires a connection to a
 server. A Mensago User ID may also be supplied. The workspace password may 
