@@ -42,7 +42,7 @@ class CommandLogin(BaseCommand):
 		if len(self.tokens) == 0:
 			status = shellstate.client.pman.get_active_profile()
 			profile = status['profile']
-			addr.set(profile.address())
+			addr.set(profile.wid.as_string() + '/' + profile.domain.as_string())
 		else:
 			addr.set(self.tokens[0])
 
@@ -58,7 +58,7 @@ class CommandLogin(BaseCommand):
 		if status.error():
 			return status
 		
-		orgkey = CryptoString(status['pvk'])
+		orgkey = CryptoString(status['ek'])
 		return iscmds.login(shellstate.client.conn, wid, orgkey)
 
 

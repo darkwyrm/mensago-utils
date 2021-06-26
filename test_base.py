@@ -5,6 +5,7 @@ import shutil
 import time
 
 import pymensago.userprofile as userprofile
+from pymensago.utils import MAddress, WAddress
 from retval import RetVal
 
 import iscmds
@@ -117,6 +118,38 @@ def test_listdir():
 		assert not status.error(), f"{funcname()}: execute('{dir}') failed: {status.error()}"
 
 
+def test_login_logout():
+	'''Tests the login command'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState(test_folder)
+	profman = userprofile.profman
+
+	data = server_reset.reset()
+	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
+		'MyS3cretPassw*rd')
+	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
+
+	cmd_login = iscmds.CommandLogin()
+	cmd_logout = iscmds.CommandLogout()
+
+	cmdlist = [ 'login admin/example.com', 'login' ]
+
+	for entry in cmdlist:
+		status = cmd_login.set(entry)
+		assert not status.error(), f"{funcname()}: login set('{entry}') failed: {status.error()}"
+		status = cmd_login.validate(shellstate)
+		assert not status.error(), f"{funcname()}: login validate('{entry}') failed: {status.error()}"
+		status = cmd_login.execute(shellstate)
+		assert not status.error(), f"{funcname()}: login execute('{entry}') failed: {status.error()}"
+
+		status = cmd_logout.set('logout')
+		assert not status.error(), f"{funcname()}: logout set('{entry}') failed: {status.error()}"
+		status = cmd_logout.validate(shellstate)
+		assert not status.error(), f"{funcname()}: logout validate('{entry}') failed: {status.error()}"
+		status = cmd_logout.execute(shellstate)
+		assert not status.error(), f"{funcname()}: logout execute('{entry}') failed: {status.error()}"
+
+
 def test_regcode():
 	'''Tests the regcode command'''
 	test_folder = setup_test(funcname())
@@ -184,8 +217,9 @@ def test_register():
 	
 
 if __name__ == '__main__':
-	test_parsing()
-	test_chdir()
-	test_listdir()
-	test_regcode()
-	test_register()
+	# test_parsing()
+	# test_chdir()
+	# test_listdir()
+	test_login_logout()
+	# test_regcode()
+	# test_register()
