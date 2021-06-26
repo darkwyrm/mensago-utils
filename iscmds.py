@@ -104,12 +104,20 @@ class CommandPreregister(BaseCommand):
 			return RetVal(ErrServerError, f"Preregistration error: {status.info()}")
 		
 		outparts = [ 'Preregistration success:\n' ]
-		if status['uid']:
+		if status.has_value('uid') and status['uid']:
 			outparts.extend(['User ID: ', status['uid'], '\n'])
 		outparts.extend(['Workspace ID: ' , status['wid'], '\n',
 						'Registration Code: ', status['regcode']], '\n')
 		
-		return RetVal(ErrOK, ''.join(outparts))
+		# Adding the registration values to the return status permits integration testing of
+		# the command
+		out = RetVal(ErrOK, ''.join(outparts)).set_values({
+			'wid': status['wid'],
+			'regcode': status['regcode']
+		})
+		if status.has_value('uid') and status['uid']:
+			out['uid'] = status['uid']
+		return out
 
 
 class CommandRegister(BaseCommand):
