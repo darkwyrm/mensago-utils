@@ -234,11 +234,12 @@ class CommandRegCode(BaseCommand):
 		status = shellstate.client.pman.get_active_profile()
 		if status.error():
 			return status
-		profile = status['profile']
 
 		status = shellstate.client.redeem_regcode(addr, self.tokens[1], self.args['password'])
 		if status.error():
-			return status
+			out = status
+			out.set_info(f"An error occurred: {status.error()} / {status.info()}")
+			return out
 
 		return RetVal(ErrOK, 'Registration code redeemed successfully')
 
