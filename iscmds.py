@@ -82,23 +82,33 @@ class CommandPreregister(BaseCommand):
 		self.help = helptext.preregister_cmd
 		self.description = 'Preregister a new account for someone.'
 		
-	def execute(self, shellstate: ShellState) -> RetVal:
-		if len(self.tokens) > 2 or len(self.tokens) == 0:
+	def validate(self, shellstate: ShellState) -> RetVal:
+		if len(self.tokens) not in [1,2]:
 			return RetVal(ErrBadData, self.help)
 		
-		try:
-			port = int(self.tokens[0])
-		except:
-			return RetVal(ErrBadValue, 'Bad port number')
-		
-		user_id = ''
+		if self.tokens[0].casefold() != 'none':
+			uid = UserID(self.tokens[0])
+			if not uid.is_valid():
+				return RetVal(ErrBadData, 'Bad user/workspace ID')
+
 		if len(self.tokens) == 2:
-			user_id = self.tokens[1]
+			domain = Domain(self.tokens[1])
+			if not domain.is_valid():
+				return RetVal(ErrBadData, 'Bad domain')
+
+		return RetVal()
+	
+	def execute(self, shellstate: ShellState) -> RetVal:
 		
-		if user_id and ('"' in user_id or '/' in user_id):
-			return RetVal(ErrBadData, 'User ID may not contain " or /.')
-		
-		status = shellstate.client.preregister_account(port, user_id)
+		uid = UserID()
+		if self.tokens[0].casefold() != 'none':
+			uid.set(self.tokens[0])
+
+		domain = Domain()
+		if len(self.tokens) == 2:
+			domain.set(self.tokens[1])
+
+		status = shellstate.client.preregister_account(uid, domain)
 		
 		if status['status'] != 200:
 			return RetVal(ErrServerError, f"Preregistration error: {status.info()}")
