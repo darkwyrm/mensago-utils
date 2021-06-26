@@ -187,6 +187,39 @@ def test_regcode():
 	assert status.error(), f"{funcname()}: validate passed registering while an identity exists"
 
 
+def test_preregister_plus():
+	'''Tests the complete preregistration process each of the several ways'''
+	# test_folder = setup_test(funcname())
+	# shellstate = shellbase.ShellState(test_folder)
+	# profman = userprofile.profman
+
+	# cmd = iscmds.CommandPreregister()
+	# cmdlist = [ 'preregister csimons' ]
+
+	# for entry in cmdlist:
+	# 	pnames = [p.name for p in profman.get_profiles()]
+	# 	if funcname() in pnames:
+	# 		profman.activate_profile('primary')
+	# 		profman.delete_profile(funcname())
+		
+	# 	profman.create_profile(funcname())
+	# 	profman.activate_profile(funcname())
+
+	# 	server_reset.reset()
+
+	# 	# Preregistration
+	# 	status = cmd.set(entry)
+	# 	assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
+	# 	status = cmd.validate(shellstate)
+	# 	assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+	# 	status = cmd.execute(shellstate)
+	# 	assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+
+	# 	# TODO: finish preregister_plus test
+	# 	# Apply reg code, log in, and log out
+	# 	status = shellstate.client.redeem_regcode()
+
+
 def test_register():
 	'''Tests the register command'''
 	test_folder = setup_test(funcname())
@@ -217,9 +250,10 @@ def test_register():
 	
 
 if __name__ == '__main__':
-	# test_parsing()
-	# test_chdir()
-	# test_listdir()
+	test_parsing()
+	test_chdir()
+	test_listdir()
 	test_login_logout()
-	# test_regcode()
-	# test_register()
+	test_preregister_plus()
+	test_regcode()
+	test_register()
