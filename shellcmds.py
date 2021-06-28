@@ -9,7 +9,8 @@ import subprocess
 import sys
 
 from prompt_toolkit import print_formatted_text, HTML
-from retval import ErrEmptyData, ErrFilesystemError, ErrNotFound, ErrOK, ErrUnimplemented, RetVal
+from retval import RetVal, ErrBadData, ErrEmptyData, ErrFilesystemError, ErrNotFound, ErrOK, \
+	ErrUnimplemented
 
 import pymensago.errorcodes as errorcodes
 
@@ -209,8 +210,49 @@ class CommandProfile(BaseCommand):
 		self.help = helptext.profile_cmd
 		self.description = 'Manage profiles.'
 	
+	def validate(self, shellstate: ShellState) -> RetVal:
+		if not len(self.tokens):
+			self.args['verb'] = 'get'
+			return RetVal()
+		
+		verb = self.tokens[0].casefold()
+		self.args['verb'] = verb
+		
+		if verb in ['list', 'get']:
+			return RetVal()
+		
+		if verb not in ['create', 'delete', 'rename', 'setdefault', 'set']:
+			return RetVal(ErrBadData, self.help)
+		
+		if verb == 'rename':
+			if len(self.tokens) != 3:
+				return RetVal(ErrBadData, self.help)
+			
+			oldname = self.tokens[1].casefold()
+			newname = self.tokens[2].casefold()
+			if oldname == 'default' or newname == 'default':
+				return RetVal(ErrBadData, "'default' is reserved and may not be used.")
+			
+			self.args['oldname'] = oldname
+			self.args['newname'] = newname
+
+			return RetVal()
+
+		if len(self.tokens) != 2:
+			return RetVal(ErrBadData, self.help)
+		
+		name = self.tokens[1].casefold()
+		if name == 'default':
+			return RetVal(ErrBadData, "'default' is reserved and may not be used.")
+		
+		self.args['name'] = name
+		
+		return RetVal()
+		
 	def execute(self, shellstate: ShellState) -> RetVal:
-		if not self.tokens:
+		verb = self.args['verb']
+		
+		if verb == 'get':
 			status = shellstate.client.get_active_profile()
 			if status.error():
 				status.set_info('No active profile')
@@ -218,53 +260,50 @@ class CommandProfile(BaseCommand):
 				status.set_info(f"Active profile: {status['profile'].name}")
 			return status
 
-		verb = self.tokens[0].casefold()
-		if len(self.tokens) == 1:
-			if verb == 'list':
-				print("Profiles:")
-				profiles = shellstate.client.get_profiles()
-				for profile in profiles:
-					print(profile.name)
-			else:
-				print(self.help)
-			return ''
-
+		if verb == 'list':
+			print("Profiles:")
+			profiles = shellstate.client.get_profiles()
+			for profile in profiles:
+				print(profile.name)
+			return RetVal()
+			
 		if verb == 'create':
-			status = shellstate.client.create_profile(self.tokens[1])
+			status = shellstate.client.create_profile(self.args['name'])
 			if status.error():
-				status.set_info(f"Couldn't create profile: {status.info()}")
+				status.set_info(f"Couldn't create profile: {status.error()} / {status.info()}")
 			return status
 		
 		if verb == 'delete':
 			print("This will delete the profile and all of its files. It can't be undone.")
-			choice = input(f"Really delete profile '{self.tokens[1]}'? [y/N] ").casefold()
+			choice = input(f"Really delete profile '{self.args['name']}'? [y/N] ").casefold()
 			status = RetVal()
 			if choice in [ 'y', 'yes' ]:
-				status = shellstate.client.delete_profile(self.tokens[1])
+				status = shellstate.client.delete_profile(self.args['name'])
 				if status.error():
-					status.set_info(f"Couldn't delete profile: {status.info()}")
+					status.set_info(f"Couldn't delete profile: {status.error()} / {status.info()}")
 				else:
-					status.set_info(f"Profile 'self.tokens[1]' has been deleted")
+					status.set_info(f"Profile '{self.args['name']}' has been deleted")
 			return status
 		
 		if verb == 'set':
-			status = shellstate.client.activate_profile(self.tokens[1])
+			status = shellstate.client.activate_profile(self.args['name'])
 			if status.error():
-				status.set_info(f"Couldn't activate profile: {status.info()}")
+				status.set_info(f"Couldn't activate profile: {status.error()} / {status.info()}")
 			return status
 		
 		if verb == 'setdefault':
-			status = shellstate.client.set_default_profile(self.tokens[1])
+			status = shellstate.client.set_default_profile(self.args['name'])
 			if status.error():
-				status.set_info(f"Couldn't set profile as default: {status.info()}")
+				status.set_info(f"Couldn't set profile as default: "
+					f"{status.error()} / {status.info()}")
 			return status
 		
 		if verb == 'rename':
 			if len(self.tokens) != 3:
 				return RetVal(ErrEmptyData, self.help)
-			status = shellstate.client.rename_profile(self.tokens[1], self.tokens[2])
+			status = shellstate.client.rename_profile(self.args['oldname'], self.args['newname'])
 			if status.error():
-				status.set_info(f"Couldn't rename profile: {status.info()}")
+				status.set_info(f"Couldn't rename profile: {status.error()} / {status.info()}")
 			return status
 		
 		return RetVal(ErrOK, self.help)
