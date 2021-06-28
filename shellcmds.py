@@ -253,22 +253,24 @@ class CommandProfile(BaseCommand):
 		verb = self.args['verb']
 		
 		if verb == 'get':
-			status = shellstate.client.get_active_profile()
+			status = shellstate.client.pman.get_active_profile()
 			if status.error():
 				status.set_info('No active profile')
 			else:
-				status.set_info(f"Active profile: {status['profile'].name}")
+				profile = status['profile']
+				out = f"Active profile: {profile.name} / {profile.get_identity().as_string()}"
+				status.set_info()
 			return status
 
 		if verb == 'list':
 			print("Profiles:")
-			profiles = shellstate.client.get_profiles()
+			profiles = shellstate.client.pman.get_profiles()
 			for profile in profiles:
 				print(profile.name)
 			return RetVal()
 			
 		if verb == 'create':
-			status = shellstate.client.create_profile(self.args['name'])
+			status = shellstate.client.pman.create_profile(self.args['name'])
 			if status.error():
 				status.set_info(f"Couldn't create profile: {status.error()} / {status.info()}")
 			return status
@@ -278,7 +280,7 @@ class CommandProfile(BaseCommand):
 			choice = input(f"Really delete profile '{self.args['name']}'? [y/N] ").casefold()
 			status = RetVal()
 			if choice in [ 'y', 'yes' ]:
-				status = shellstate.client.delete_profile(self.args['name'])
+				status = shellstate.client.pman.delete_profile(self.args['name'])
 				if status.error():
 					status.set_info(f"Couldn't delete profile: {status.error()} / {status.info()}")
 				else:
@@ -292,7 +294,7 @@ class CommandProfile(BaseCommand):
 			return status
 		
 		if verb == 'setdefault':
-			status = shellstate.client.set_default_profile(self.args['name'])
+			status = shellstate.client.pman.set_default_profile(self.args['name'])
 			if status.error():
 				status.set_info(f"Couldn't set profile as default: "
 					f"{status.error()} / {status.info()}")
@@ -301,7 +303,8 @@ class CommandProfile(BaseCommand):
 		if verb == 'rename':
 			if len(self.tokens) != 3:
 				return RetVal(ErrEmptyData, self.help)
-			status = shellstate.client.rename_profile(self.args['oldname'], self.args['newname'])
+			status = shellstate.client.pman.rename_profile(self.args['oldname'],
+				self.args['newname'])
 			if status.error():
 				status.set_info(f"Couldn't rename profile: {status.error()} / {status.info()}")
 			return status
