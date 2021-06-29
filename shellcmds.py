@@ -258,7 +258,7 @@ class CommandProfile(BaseCommand):
 				status.set_info('No active profile')
 			else:
 				profile = status['profile']
-				out = f"Active profile: {profile.name} / {profile.get_identity().as_string()}"
+				out = f"Active profile: {profile.name}, {profile.get_identity().as_string()}"
 				status.set_info(out)
 			return status
 
