@@ -5,7 +5,7 @@ import shutil
 import time
 
 import pymensago.userprofile as userprofile
-from pymensago.utils import MAddress, WAddress
+from pymensago.utils import MAddress
 from retval import RetVal
 
 import iscmds
@@ -245,6 +245,27 @@ def test_preregister_plus():
 	shellstate.client.disconnect()
 
 
+def test_profile():
+	'''Tests the different profile command modes'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState(test_folder)
+	profman = userprofile.profman
+
+	data = server_reset.reset()
+	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
+		'MyS3cretPassw*rd')
+	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
+
+	cmd = shellcmds.CommandProfile()
+	status = cmd.set('profile')
+	assert not status.error(), f"{funcname()}: set('profile') failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('profile') failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('profile') failed: {status.error()}"
+	regdata = status
+
+
 def test_register():
 	'''Tests the register command'''
 	test_folder = setup_test(funcname())
@@ -275,10 +296,11 @@ def test_register():
 	
 
 if __name__ == '__main__':
-	test_parsing()
-	test_chdir()
-	test_listdir()
-	test_login_logout()
-	test_preregister_plus()
-	test_regcode()
-	test_register()
+	# test_parsing()
+	# test_chdir()
+	# test_listdir()
+	# test_login_logout()
+	# test_preregister_plus()
+	test_profile()
+	# test_regcode()
+	# test_register()
