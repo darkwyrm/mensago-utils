@@ -208,7 +208,8 @@ def test_preregister_plus():
 			profman.delete_profile(funcname())
 		
 		status = shellstate.client.login(MAddress('admin/example.com'))
-		assert not status.error(), f"{funcname()}: Failed to log in as admin"
+		assert not status.error(), f"{funcname()}: Failed to log in as admin: " \
+			f"{status.error()} / {status.info()}"
 		
 		# Preregistration
 		status = cmd.set(entry)
@@ -217,16 +218,31 @@ def test_preregister_plus():
 		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
 		status = cmd.execute(shellstate)
 		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+		regdata = status
 
 		status = shellstate.client.logout()
-		assert not status.error(), f"{funcname()}: Failed to log out of admin account"
+		assert not status.error(), f"{funcname()}: Failed to log out of admin account: " \
+			f"{status.error()} / {status.info()}"
 
-		# profman.create_profile(funcname())
-		# profman.activate_profile(funcname())
+		# Load up a throwaway profile for the newly-preregistered account, activate it, apply the
+		# registration code, and log in as the user
+		profman.create_profile(funcname())
+		profman.activate_profile(funcname())
 
-		# # TODO: finish preregister_plus test
-		# # Apply reg code, log in, and log out
-		# status = shellstate.client.redeem_regcode()
+		addr = MAddress()
+		if regdata.has_value('uid'):
+			addr.set_from_userid(regdata['uid'], regdata['domain'])
+		else:
+			addr.set_from_wid(regdata['wid'], regdata['domain'])
+		status = shellstate.client.redeem_regcode(addr, regdata['regcode'], 'MyS3cretPassw*rd')
+		assert not status.error(), f"{funcname()}: Failed to redeem user regcode"
+
+		status = shellstate.client.login(addr)
+		assert not status.error(), f"{funcname()}: Failed to log in as user {addr.as_string()}"
+		status = shellstate.client.logout()
+		assert not status.error(), f"{funcname()}: Failed to log out from user {addr.as_string()}"
+	
+	shellstate.client.disconnect()
 
 
 def test_register():
@@ -259,10 +275,10 @@ def test_register():
 	
 
 if __name__ == '__main__':
-	# test_parsing()
-	# test_chdir()
-	# test_listdir()
-	# test_login_logout()
+	test_parsing()
+	test_chdir()
+	test_listdir()
+	test_login_logout()
 	test_preregister_plus()
-	# test_regcode()
-	# test_register()
+	test_regcode()
+	test_register()
