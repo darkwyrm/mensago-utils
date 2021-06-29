@@ -89,7 +89,7 @@ class CommandPreregister(BaseCommand):
 		if self.tokens[0].casefold() != 'none':
 			uid = UserID(self.tokens[0])
 			if not uid.is_valid():
-				return RetVal(ErrBadData, 'Bad user/workspace ID')
+				return RetVal(ErrBadData, 'Bad user ID/workspace ID')
 
 		if len(self.tokens) == 2:
 			domain = Domain(self.tokens[1])
@@ -110,8 +110,9 @@ class CommandPreregister(BaseCommand):
 
 		status = shellstate.client.preregister_account(uid, domain)
 		
-		if status['status'] != 200:
-			return RetVal(ErrServerError, f"Preregistration error: {status.info()}")
+		if status.error():
+			return RetVal(ErrServerError, f"Preregistration error: "
+				f"{status.error()} / {status.info()}")
 		
 		outparts = [ 'Preregistration success:\n' ]
 		if status.has_value('uid') and status['uid']:
@@ -205,7 +206,7 @@ class CommandRegCode(BaseCommand):
 		if status.error():
 			return status
 		profile = status['profile']
-		if profile.wid:
+		if not profile.wid.is_empty():
 			return RetVal(ErrExists, 'An identity has already been assigned to this profile.')
 		
 		addr = MAddress()
