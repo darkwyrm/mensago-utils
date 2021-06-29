@@ -266,6 +266,20 @@ def test_profile():
 	assert status.info() == 'Active profile: primary, admin/example.com', \
 		f"{funcname()}: execute('profile') failed: output did not match expected: '{status.info()}'"
 
+	status = cmd.set(f"profile create {funcname()}")
+	assert not status.error(), f"{funcname()}: set('{funcname()}') failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('{funcname()}') failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('{funcname()}') failed: {status.error()}"
+
+	status = cmd.set(f"profile create Fancy*Profile@Name")
+	assert not status.error(), f"{funcname()}: set('{funcname()}') failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert status.error(), f"{funcname()}: validate('{funcname()}') passed a bad profile name"
+
+	
+
 def test_register():
 	'''Tests the register command'''
 	test_folder = setup_test(funcname())

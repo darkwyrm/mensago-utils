@@ -5,6 +5,7 @@ from getpass import getpass
 from glob import glob
 import os
 import platform
+import re
 import subprocess
 import sys
 
@@ -209,6 +210,7 @@ class CommandProfile(BaseCommand):
 		self.name = 'profile'
 		self.help = helptext.profile_cmd
 		self.description = 'Manage profiles.'
+		self.illegal_pattern = re.compile('''[<>:"'\/\\|?*\s]''')
 	
 	def validate(self, shellstate: ShellState) -> RetVal:
 		if not len(self.tokens):
@@ -230,8 +232,9 @@ class CommandProfile(BaseCommand):
 			
 			oldname = self.tokens[1].casefold()
 			newname = self.tokens[2].casefold()
-			if oldname == 'default' or newname == 'default':
-				return RetVal(ErrBadData, "'default' is reserved and may not be used.")
+			if self.illegal_pattern.search(newname):
+				return RetVal(ErrBadData, "Profile names may not have spaces or the following "
+					"characters: < > : \" ' / \\ | ? *")
 			
 			self.args['oldname'] = oldname
 			self.args['newname'] = newname
@@ -242,8 +245,9 @@ class CommandProfile(BaseCommand):
 			return RetVal(ErrBadData, self.help)
 		
 		name = self.tokens[1].casefold()
-		if name == 'default':
-			return RetVal(ErrBadData, "'default' is reserved and may not be used.")
+		if self.illegal_pattern.search(name):
+			return RetVal(ErrBadData, "Profile names may not have spaces or the following "
+				"characters: < > : \" ' / \\ | ? *")
 		
 		self.args['name'] = name
 		
