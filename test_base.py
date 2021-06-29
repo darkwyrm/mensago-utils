@@ -105,7 +105,7 @@ def test_listdir():
 	cmd = shellcmds.CommandListDir()
 	dirlist = ['~']
 	if platform.system().casefold() == 'windows':
-		dirlist.append(r'ls C:\\')
+		dirlist.append('ls C:\\')
 	else:
 		dirlist.append(r'ls /')
 	
