@@ -124,7 +124,8 @@ class CommandPreregister(BaseCommand):
 		# the command
 		out = RetVal(ErrOK, ''.join(outparts)).set_values({
 			'wid': status['wid'],
-			'regcode': status['regcode']
+			'regcode': status['regcode'],
+			'domain': status['domain']
 		})
 		if status.has_value('uid') and status['uid']:
 			out['uid'] = status['uid']
