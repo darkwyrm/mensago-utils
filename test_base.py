@@ -278,7 +278,16 @@ def test_profile():
 	status = cmd.validate(shellstate)
 	assert status.error(), f"{funcname()}: validate('{funcname()}') passed a bad profile name"
 
-	
+	status = cmd.set(f"profile list")
+	assert not status.error(), f"{funcname()}: set('{funcname()}') failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('{funcname()}') failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('{funcname()}') failed: {status.error()}"
+	assert status.info() == f"Profiles:\nprimary\n{funcname()}"
+
+
+
 
 def test_register():
 	'''Tests the register command'''

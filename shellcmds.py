@@ -267,11 +267,11 @@ class CommandProfile(BaseCommand):
 			return status
 
 		if verb == 'list':
-			print("Profiles:")
+			out = [ "Profiles:" ]
 			profiles = shellstate.client.pman.get_profiles()
 			for profile in profiles:
-				print(profile.name)
-			return RetVal()
+				out.append(profile.name)
+			return RetVal().set_info('\n'.join(out))
 			
 		if verb == 'create':
 			status = shellstate.client.pman.create_profile(self.args['name'])
@@ -324,7 +324,7 @@ class CommandProfile(BaseCommand):
 			out_data = [i for i in verbs if i.startswith(tokens[0])]
 			return out_data
 		
-		groups = shellstate.client.get_profiles()
+		groups = shellstate.client.pman.get_profiles()
 		if len(tokens) == 2 and tokens[1] not in groups:
 			out_data = [i for i in groups if i.startswith(tokens[1])]
 			return out_data
