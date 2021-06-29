@@ -190,6 +190,7 @@ class CommandRegister(BaseCommand):
 		
 		return RetVal()
 
+
 class CommandRegCode(BaseCommand):
 	'''Finish registration of an account with a registration code'''
 	def __init__(self):
