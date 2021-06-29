@@ -263,8 +263,8 @@ def test_profile():
 	assert not status.error(), f"{funcname()}: validate('profile') failed: {status.error()}"
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: execute('profile') failed: {status.error()}"
-	regdata = status
-
+	assert status.info() == 'Active profile: primary, admin/example.com', \
+		f"{funcname()}: execute('profile') failed: output did not match expected: '{status.info()}'"
 
 def test_register():
 	'''Tests the register command'''
