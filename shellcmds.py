@@ -259,7 +259,7 @@ class CommandProfile(BaseCommand):
 			else:
 				profile = status['profile']
 				out = f"Active profile: {profile.name} / {profile.get_identity().as_string()}"
-				status.set_info()
+				status.set_info(out)
 			return status
 
 		if verb == 'list':
