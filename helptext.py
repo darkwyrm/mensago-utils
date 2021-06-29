@@ -37,23 +37,25 @@ profile_cmd = '''Usage: profile <action> <profilename>
 Manage profiles. Actions are detailed below.
 
 create <name> - create a new profile, which is just a name for identification
-by the user. The profile may be named anything other than "default", which is
-reserved. Profile names are case-sensitive, so "Default" is permitted. Note
-that once created, it must be made active and either logging in or
-registration is needed for the profile to be useful.
+by the user. Profile names are not case-sensitive. Note that once created, it 
+must be made active in order to interact with it. Each profile may have only 
+ONE identity associated with it. Profile names may NOT contain any of the 
+following characters: < > : " ' / \ | ? *
 
 delete <name> - delete a profile and any files associated with it. Because it
 cannot be undone, this command requires confirmation from the user.
 
-rename <oldname> <newname> - change the name of a profile. Neither name may be
-"default".
+rename <oldname> <newname> - change the name of a profile.
 
 list - prints a list of all available profiles
 
 setdefault <name> - sets the profile to be loaded on startup. If only one
 profile exists, this action has no effect.
 
-set <name> - activates the specified profile and deactivates the current one.'''
+set <name> - activates the specified profile and deactivates the current one.
+
+get - displays the current profile's name and associated Mensago address. If
+the profile command is issued without an action, this one is assumed.'''
 
 regcode_cmd = '''Usage: regcode <address> <code> [<password>]
 
