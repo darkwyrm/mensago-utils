@@ -297,6 +297,15 @@ def test_profile():
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: execute('{teststr}') failed: {status.error()}"
 
+	teststr = f"profile set nonexistent-profile"
+	status = cmd.set(teststr)
+	assert not status.error(), f"{funcname()}: set('{teststr}') failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('{teststr}') failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert status.error(), f"{funcname()}: execute('{teststr}') passed a nonexistent profile"
+
+	# TODO: Finish writing profile command tests
 
 
 def test_register():
