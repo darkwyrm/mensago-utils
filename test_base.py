@@ -266,26 +266,36 @@ def test_profile():
 	assert status.info() == 'Active profile: primary, admin/example.com', \
 		f"{funcname()}: execute('profile') failed: output did not match expected: '{status.info()}'"
 
-	status = cmd.set(f"profile create {funcname()}")
-	assert not status.error(), f"{funcname()}: set('{funcname()}') failed: {status.error()}"
+	teststr = f"profile create {funcname()}"
+	status = cmd.set(teststr)
+	assert not status.error(), f"{funcname()}: set('{teststr}') failed: {status.error()}"
 	status = cmd.validate(shellstate)
-	assert not status.error(), f"{funcname()}: validate('{funcname()}') failed: {status.error()}"
+	assert not status.error(), f"{funcname()}: validate('{teststr}') failed: {status.error()}"
 	status = cmd.execute(shellstate)
-	assert not status.error(), f"{funcname()}: execute('{funcname()}') failed: {status.error()}"
+	assert not status.error(), f"{funcname()}: execute('{teststr}') failed: {status.error()}"
 
-	status = cmd.set(f"profile create Fancy*Profile@Name")
-	assert not status.error(), f"{funcname()}: set('{funcname()}') failed: {status.error()}"
+	teststr = f"profile create Fancy*Profile@Name"
+	status = cmd.set(teststr)
+	assert not status.error(), f"{funcname()}: set('{teststr}') failed: {status.error()}"
 	status = cmd.validate(shellstate)
-	assert status.error(), f"{funcname()}: validate('{funcname()}') passed a bad profile name"
+	assert status.error(), f"{funcname()}: validate('{teststr}') passed a bad profile name"
 
-	status = cmd.set(f"profile list")
-	assert not status.error(), f"{funcname()}: set('{funcname()}') failed: {status.error()}"
+	teststr = "profile list"
+	status = cmd.set(teststr)
+	assert not status.error(), f"{funcname()}: set('{teststr}') failed: {status.error()}"
 	status = cmd.validate(shellstate)
-	assert not status.error(), f"{funcname()}: validate('{funcname()}') failed: {status.error()}"
+	assert not status.error(), f"{funcname()}: validate('{teststr}') failed: {status.error()}"
 	status = cmd.execute(shellstate)
-	assert not status.error(), f"{funcname()}: execute('{funcname()}') failed: {status.error()}"
+	assert not status.error(), f"{funcname()}: execute('{teststr}') failed: {status.error()}"
 	assert status.info() == f"Profiles:\nprimary\n{funcname()}"
 
+	teststr = f"profile set {funcname()}"
+	status = cmd.set(teststr)
+	assert not status.error(), f"{funcname()}: set('{teststr}') failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: validate('{teststr}') failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: execute('{teststr}') failed: {status.error()}"
 
 
 

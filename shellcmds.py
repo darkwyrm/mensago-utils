@@ -292,7 +292,7 @@ class CommandProfile(BaseCommand):
 			return status
 		
 		if verb == 'set':
-			status = shellstate.client.activate_profile(self.args['name'])
+			status = shellstate.client.pman.activate_profile(self.args['name'])
 			if status.error():
 				status.set_info(f"Couldn't activate profile: {status.error()} / {status.info()}")
 			return status
