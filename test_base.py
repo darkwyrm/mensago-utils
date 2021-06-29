@@ -189,35 +189,44 @@ def test_regcode():
 
 def test_preregister_plus():
 	'''Tests the complete preregistration process each of the several ways'''
-	# test_folder = setup_test(funcname())
-	# shellstate = shellbase.ShellState(test_folder)
-	# profman = userprofile.profman
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState(test_folder)
+	profman = userprofile.profman
 
-	# cmd = iscmds.CommandPreregister()
-	# cmdlist = [ 'preregister csimons' ]
+	data = server_reset.reset()
+	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
+		'MyS3cretPassw*rd')
+	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
 
-	# for entry in cmdlist:
-	# 	pnames = [p.name for p in profman.get_profiles()]
-	# 	if funcname() in pnames:
-	# 		profman.activate_profile('primary')
-	# 		profman.delete_profile(funcname())
+	cmd = iscmds.CommandPreregister()
+	cmdlist = [ 'preregister csimons', 'preregister csimons2 example.com' ]
+
+	for entry in cmdlist:
+		pnames = [p.name for p in profman.get_profiles()]
+		if funcname() in pnames:
+			profman.activate_profile('primary')
+			profman.delete_profile(funcname())
 		
-	# 	profman.create_profile(funcname())
-	# 	profman.activate_profile(funcname())
+		status = shellstate.client.login(MAddress('admin/example.com'))
+		assert not status.error(), f"{funcname()}: Failed to log in as admin"
+		
+		# Preregistration
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
 
-	# 	server_reset.reset()
+		status = shellstate.client.logout()
+		assert not status.error(), f"{funcname()}: Failed to log out of admin account"
 
-	# 	# Preregistration
-	# 	status = cmd.set(entry)
-	# 	assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
-	# 	status = cmd.validate(shellstate)
-	# 	assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
-	# 	status = cmd.execute(shellstate)
-	# 	assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+		# profman.create_profile(funcname())
+		# profman.activate_profile(funcname())
 
-	# 	# TODO: finish preregister_plus test
-	# 	# Apply reg code, log in, and log out
-	# 	status = shellstate.client.redeem_regcode()
+		# # TODO: finish preregister_plus test
+		# # Apply reg code, log in, and log out
+		# status = shellstate.client.redeem_regcode()
 
 
 def test_register():
@@ -250,10 +259,10 @@ def test_register():
 	
 
 if __name__ == '__main__':
-	test_parsing()
-	test_chdir()
-	test_listdir()
-	test_login_logout()
+	# test_parsing()
+	# test_chdir()
+	# test_listdir()
+	# test_login_logout()
 	test_preregister_plus()
-	test_regcode()
-	test_register()
+	# test_regcode()
+	# test_register()
