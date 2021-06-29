@@ -39,8 +39,8 @@ Manage profiles. Actions are detailed below.
 create <name> - create a new profile, which is just a name for identification
 by the user. Profile names are not case-sensitive. Note that once created, it 
 must be made active in order to interact with it. Each profile may have only 
-ONE identity associated with it. Profile names may NOT contain any of the 
-following characters: < > : " ' / \ | ? *
+ONE identity associated with it. Profile names may NOT contain whitespace or 
+any of the following characters: < > : " ' / \ | ? *
 
 delete <name> - delete a profile and any files associated with it. Because it
 cannot be undone, this command requires confirmation from the user.
