@@ -50,16 +50,7 @@ class CommandLogin(BaseCommand):
 		if status.error():
 			return status
 
-		status = shellstate.client.kcr.resolve_address(addr)
-		if status.error():
-			return status
-		wid = status['Workspace-ID']
-		status = get_mgmt_record(addr.domain.as_string())
-		if status.error():
-			return status
-		
-		orgkey = CryptoString(status['ek'])
-		return iscmds.login(shellstate.client.conn, wid, orgkey)
+		return shellstate.client.login(addr)
 
 
 class CommandLogout(BaseCommand):
