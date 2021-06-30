@@ -179,7 +179,7 @@ class CommandRegister(BaseCommand):
 		# TODO: Add an entry to the keycard
 		# TODO: Save signed keycard to database
 		
-		return RetVal()
+		return RetVal().set_info('Registration successful')
 
 
 class CommandRegCode(BaseCommand):
