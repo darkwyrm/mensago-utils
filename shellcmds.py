@@ -324,10 +324,10 @@ class CommandProfile(BaseCommand):
 			out_data = [i for i in verbs if i.startswith(tokens[0])]
 			return out_data
 		
-		groups = shellstate.client.pman.get_profiles()
-		if len(tokens) == 2 and tokens[1] not in groups:
-			out_data = [i for i in groups if i.startswith(tokens[1])]
-			return out_data
+		# groups = shellstate.client.pman.get_profiles()
+		# if len(tokens) == 2 and tokens[1] not in groups:
+		# 	out_data = [i for i in groups if i.startswith(tokens[1])]
+		# 	return out_data
 
 		return list()
 
