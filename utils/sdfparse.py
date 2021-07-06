@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# AntmConv - a conversion utility for the AnTM markup language, https://mensago.org/spec/antm/
+# SDFParse - a test utility for SDF documents
 
 # Released under the terms of the MIT license
 # ©2019-2020 Jon Yoder <jon@yoder.cloud>
@@ -9,16 +9,25 @@ import re
 
 global_tag_list = [
 	'align',
+	'attachments',
 	'b',
+	'body',
 	'cell',
 	'code',
 	'document',
+	'fontinfo',
+	'h1','h2','h3','h4','h5','h6',
+	'head',
 	'header',
+	'hrule',
 	'image',
 	'i',
 	'link',
+	'linkinfo',
 	'li',
+	'meta',
 	'olist',
+	'p',
 	'quote',
 	'row',
 	's',
@@ -31,7 +40,7 @@ global_tag_list = [
 ]
 
 class Tag:
-	'''Defines an AnTM tag'''
+	'''Defines an SDF tag'''
 	def __init__(self):
 		self.name = ''
 		self.attributes = dict()
@@ -81,14 +90,13 @@ class TextRun:
 	def count(self) -> int:
 		'''Returns the number of values contained by the return value'''
 		return len(self._attributes)
-	
 
 def parse_tag(tagstr: str) -> Tag:
 	'''Transforms string of a tag into a Tag object. The text is expected to be that which is in 
 	between the square brackets and stripped of whitespace'''
 	out = Tag()
 	
-	m = re.search(r'^(\/?)([a-zA-z]+)', tagstr)
+	m = re.search(r'^(\/?)([a-zA-z0-9]+)', tagstr)
 	if m is None:
 		return None
 	
@@ -100,9 +108,9 @@ def parse_tag(tagstr: str) -> Tag:
 	out.name = m[0].casefold()
 
 	# Matches everything: ( [a-zA-Z]+=\"[^\"]*\")*
-	matches = re.findall(r'[a-zA-Z]+=\"[^\"]*\"', tagstr)
+	matches = re.findall(r'[a-zA-Z0-9]+=\"[^\"]*\"', tagstr)
 	for match in matches:
-		parts = '='.split(match)
+		parts = match.split('=')
 		if len(parts) != 2:
 			continue
 		
@@ -115,7 +123,7 @@ def parse_tag(tagstr: str) -> Tag:
 
 
 def tokenize(indata: str) -> list:
-	'''Takes in AnTM string data and spits out a list of tokens'''
+	'''Takes in SFTM string data and spits out a list of tokens'''
 	rawtokens = re.findall(r'\[[^]]+\]|[^[]+', indata)
 
 	# We've split the raw text into tags and text runs, but there's more to it.
@@ -136,13 +144,17 @@ def tokenize(indata: str) -> list:
 				out.append(rawtoken)
 			else:
 				out.append(tag)
-	
+		else:
+			out.append(rawtoken)	
 	return out
 
 
-test1 = '''[document language="en-us"]
-[h1]Mensago Text Markup (AnTM)[/h1]
-Jon Yoder -- jon@yoder.cloud -- Version 1.0, 2019-08-08
+test1 = '''[document]
+[head]
+[meta author="Jon Yoder" language="en-us" title="Safe Document Format (SDF)"][/meta]
+[/head]
+[body]
+[h1]Safe Document Format (SDF)[/h1]
 
 [b]Status:[/b] Review
 [b]Abstract:[/b] Rich text formatting language for client-side use
@@ -165,7 +177,7 @@ The problems which AnTM is intended to solve in replacing HTML for rich formatti
 [row][cell]AntiqueWhite[/cell][cell]#FAEBD7[/cell][cell color="#FAEBD7"]██████[/cell][/row]
 [row][cell]Aqua[/cell][cell]#00FFFF[/cell][cell color="#00FFFF"]██████[/cell][/row]
 [/table]
-
+[/body]
 [/document]
 '''
 
