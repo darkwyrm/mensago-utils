@@ -103,10 +103,21 @@ Command Prompt. On UNIX-like platforms, this is the default shell, usually
 bash.
 Aliases: ` , sh'''
 
-setinfo_cmd = '''Usage: setinfo <infotype> <value>
+setinfo_cmd = '''Usage: setinfo <fieldname> <value>
 
 Sets contact information for the profile. Available information which can be 
 set is listed below:
+
+FormattedName     GivenName         FamilyName        Nicknames
+AdditionalNames+  Prefix            Suffixes+         Gender
+Social.           Mensago.          Bio               MailingAddresses.
+Phone.            Anniversary       Birthday          Email.
+Organization.     Title             Categories+       Website
+Photo             Languages+        Notes             Attachments+
+Custom.
+
+Fields ending with a period are key-value pairs, and those ending with a + are
+lists of multiple values.
 '''
 
 setuserid_cmd = '''Usage: setuserid <userid>
