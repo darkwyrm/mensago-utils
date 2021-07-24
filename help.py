@@ -5,11 +5,25 @@ _gHelpTopics = dict()
 _gKeywordMap = dict()
 
 
-def addtopic(topic: str, text: str, keywords: list):
+def addtopic(topic: str, text: str, keywords: list) -> bool:
 	'''Adds a topic to the help database. The list of keywords may be None, but its usage is 
 	highly encouraged.'''
-	# TODO: Implement help.addtopic()
-	pass
+	
+	global _gHelpTopics, _gKeywordMap
+	
+	t = topic.casefold()
+	if not isinstance(topic, str) or not isinstance(text, str):
+		raise TypeError
+	
+	_gHelpTopics[t] = text
+	for rawkw in keywords:
+		kw = rawkw.casefold()
+		if kw in _gKeywordMap:
+			_gKeywordMap[kw].append(topic)
+		else:
+			_gKeywordMap[kw] = [ topic ]
+	
+	return True
 
 def gettopic(topic: str) -> str:
 	'''Gets a help topic. If it doesn't exist, a list of topics which contain keywords for the 
