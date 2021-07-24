@@ -332,13 +332,13 @@ class CommandProfile(BaseCommand):
 		return list()
 
 
-class CommandSetInfo(BaseCommand):
+class CommandMyInfo(BaseCommand):
 	'''Set workspace information'''
 	def __init__(self):
 		super().__init__()
-		self.name = 'setinfo'
-		self.help = helptext.setinfo_cmd
-		self.description = 'Set workspace information'
+		self.name = 'myinfo'
+		self.help = helptext.myinfo_cmd
+		self.description = 'Set workspace contact information'
 
 	def execute(self, shellstate: ShellState) -> RetVal:
 		# TODO: Implement SETINFO

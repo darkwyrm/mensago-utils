@@ -5,6 +5,7 @@ import sys
 
 from prompt_toolkit import HTML
 
+import helptext
 import shellhelp
 import iscmds
 import shellcmds 
@@ -43,6 +44,8 @@ def init_commands():
 		parts.append(f"<gray><b>{name.rjust(maxlength)}</b>  {item.description}</gray>")
 	shellhelp.addtopic('commands', '\n'.join(parts), None)
 
+	shellhelp.addtopic('myinfo_usage', helptext.myinfo_usage, None)
+	
 
 def add_command(cmd: BaseCommand):
 	'''Add a Command instance to the list'''

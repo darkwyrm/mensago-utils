@@ -22,6 +22,39 @@ Logs out of a server connection. This command does nothing and returns no
 error if not connected.
 '''
 
+myinfo_cmd = '''Usage: myinfo <verb> <fieldname> <value>
+
+Sets contact information for the profile. Available information which can be 
+set is listed below:
+
+FormattedName     GivenName         FamilyName        Nicknames
+AdditionalNames+  Prefix            Suffixes+         Gender
+Social.           Mensago.          Bio               MailingAddresses.
+Phone.            Anniversary       Birthday          Email.
+Organization.     Title             Categories+       Website
+Photo             Languages+        Notes             Attachments+
+Custom.
+
+Fields ending with a period are dictionaries (key-value pairs), and those ending with a + are
+lists of multiple values.
+
+Verbs used are `set`, `add`, `del`, and `check`. `add` appends a value to a list or dictionary.
+`del` takes an index for lists, a key name for dictionaries, or a field name for single values.
+`set` takes an index, key name, or field name like `del`, only changes existing values. If a field
+doesn't exist, it returns an error. `check` takes no arguments; it merely checks to make sure that
+all personal information fields are valid and that no required fields are missing.
+
+Further information about the `myinfo` command can be found in the topic `myinfo_usage`.
+'''
+
+myinfo_usage = '''
+Subfields are referenced by separating field names with a period. For example, adding one's
+Twitter handle, which would be a subfield of the dictionary field `Social`, would be performed with
+the command `myinfo set Social.Twitter @mytwitterhandle`.
+
+Values which have spaces must be enclosed by double-quotes ("). 
+'''
+
 preregister_cmd='''Usage: preregister user_id [domain]
 
 Preprovisions a workspace for a user. This command only works when logged in 
@@ -102,23 +135,6 @@ Executes a command directly in the regular user shell. On Windows, this is
 Command Prompt. On UNIX-like platforms, this is the default shell, usually
 bash.
 Aliases: ` , sh'''
-
-setinfo_cmd = '''Usage: setinfo <fieldname> <value>
-
-Sets contact information for the profile. Available information which can be 
-set is listed below:
-
-FormattedName     GivenName         FamilyName        Nicknames
-AdditionalNames+  Prefix            Suffixes+         Gender
-Social.           Mensago.          Bio               MailingAddresses.
-Phone.            Anniversary       Birthday          Email.
-Organization.     Title             Categories+       Website
-Photo             Languages+        Notes             Attachments+
-Custom.
-
-Fields ending with a period are key-value pairs, and those ending with a + are
-lists of multiple values.
-'''
 
 setuserid_cmd = '''Usage: setuserid <userid>
 
