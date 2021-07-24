@@ -46,7 +46,7 @@ if __name__ == '__main__':
 	
 	while True:
 		try:
-			raw_input = session.prompt(HTML('🐧<yellow><b> > </b></yellow>' ),
+			raw_input = session.prompt(HTML('<yellow><b> :> </b></yellow>' ),
 									completer=commandCompleter)
 		except KeyboardInterrupt:
 			break
