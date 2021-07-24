@@ -72,4 +72,4 @@ if __name__ == '__main__':
 			
 			status = cmd.execute(shellstate)
 			if status.info():
-				print_formatted_text(status.info())
+				print_formatted_text(HTML(status.info()))

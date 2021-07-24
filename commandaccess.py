@@ -1,6 +1,10 @@
-from shellbase import BaseCommand
+import collections
+from shellbase import BaseCommand, gShellCommands
 import sys
 
+from prompt_toolkit import HTML
+
+import shellhelp
 import iscmds
 import shellcmds 
 
@@ -24,6 +28,13 @@ def init_commands():
 
 	global __all_names
 	__all_names.sort()
+
+	# Create the help topic for the command list
+	ordered = collections.OrderedDict(sorted(gShellCommands.items()))
+	parts = list()
+	for name,item in ordered.items():
+		parts.append(f"<gray><b>{name}</b>\t{item.description}</gray>")
+	shellhelp.addtopic('commands', '\n'.join(parts), None)
 
 
 def add_command(cmd: BaseCommand):

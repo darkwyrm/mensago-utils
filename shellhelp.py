@@ -16,12 +16,13 @@ def addtopic(topic: str, text: str, keywords: list):
 		raise TypeError
 	
 	_gHelpTopics[t] = text
-	for rawkw in keywords:
-		kw = rawkw.casefold()
-		if kw in _gKeywordMap:
-			_gKeywordMap[kw].append(topic)
-		else:
-			_gKeywordMap[kw] = [ topic ]
+	if keywords:
+		for rawkw in keywords:
+			kw = rawkw.casefold()
+			if kw in _gKeywordMap:
+				_gKeywordMap[kw].append(topic)
+			else:
+				_gKeywordMap[kw] = [ topic ]
 
 
 def gettopic(topic: str) -> str:

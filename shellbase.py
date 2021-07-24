@@ -33,6 +33,7 @@ class BaseCommand:
 		self.name = ''
 		self.help = ''
 		self.description = ''
+		self.keywords = None
 
 		# Argument-handling attributes
 		self.rawcmd = ''

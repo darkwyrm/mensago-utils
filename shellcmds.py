@@ -1,6 +1,6 @@
 '''Contains the implementations for shell commands'''
 # pylint: disable=unused-argument,too-many-branches
-import collections
+# import collections
 from getpass import getpass
 from glob import glob
 import os
@@ -18,6 +18,7 @@ import pymensago.errorcodes as errorcodes
 import helptext
 import server_reset
 from shellbase import BaseCommand, gShellCommands, ShellState
+import shellhelp
 
 class CommandEmpty(BaseCommand):
 	'''Special command just to handle blanks'''
@@ -124,20 +125,19 @@ class CommandHelp(BaseCommand):
 
 	def execute(self, shellstate: ShellState) -> RetVal:
 		out = ''
+
+		topic = ''
 		if self.tokens:
-			# help <keyword>
-			if self.tokens[0] in gShellCommands:
-				out = gShellCommands[self.tokens[0]].help
-			else:
-				out = HTML(f"No help on <gray><b>{self.tokens[0]}</b></gray>\n")
-			return RetVal(ErrOK, out)	
+			topic = self.tokens[0].casefold()
+		else:
+			out = [ "Topics\n" ]
+			out.extend(sorted(shellhelp.gettopiclist()))
+			return RetVal(ErrOK, '\n'.join(out))
 		
-		# Bare help command: print available commands
-		ordered = collections.OrderedDict(sorted(gShellCommands.items()))
-		for name,item in ordered.items():
-			print_formatted_text(HTML(f"<gray><b>{name}</b>\t{item.description}</gray>"))
-		
-		return RetVal()
+		if topic in gShellCommands:
+			return RetVal(ErrOK, gShellCommands[self.tokens[0]].help)
+			
+		return RetVal(ErrOK, shellhelp.gettopic(topic))
 
 
 class CommandListDir(BaseCommand):
