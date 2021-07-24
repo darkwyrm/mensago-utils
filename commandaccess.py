@@ -1,5 +1,6 @@
 import collections
 from shellbase import BaseCommand, gShellCommands
+import string
 import sys
 
 from prompt_toolkit import HTML
@@ -32,8 +33,14 @@ def init_commands():
 	# Create the help topic for the command list
 	ordered = collections.OrderedDict(sorted(gShellCommands.items()))
 	parts = list()
+
+	maxlength = 0
+	for name,_ in ordered.items():
+		if len(name) > maxlength:
+			maxlength = len(name)
+	
 	for name,item in ordered.items():
-		parts.append(f"<gray><b>{name}</b>\t{item.description}</gray>")
+		parts.append(f"<gray><b>{name.rjust(maxlength)}</b>  {item.description}</gray>")
 	shellhelp.addtopic('commands', '\n'.join(parts), None)
 
 
