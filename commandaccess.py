@@ -28,6 +28,8 @@ def init_commands():
 	add_command(iscmds.CommandRegCode())
 	add_command(iscmds.CommandRegister())
 
+	add_command(iscmds.CommandMyInfo())
+	
 	global __all_names
 	__all_names.sort()
 
@@ -45,6 +47,9 @@ def init_commands():
 	shellhelp.addtopic('commands', '\n'.join(parts), None)
 
 	shellhelp.addtopic('myinfo_usage', helptext.myinfo_usage, None)
+	shellhelp.addtopic('myinfo_fields', helptext.myinfo_fields, None)
+	shellhelp.addtopic('myinfo_fields2', helptext.myinfo_fields2, None)
+	shellhelp.addtopic('myinfo_fields3', helptext.myinfo_fields3, None)
 	
 
 def add_command(cmd: BaseCommand):

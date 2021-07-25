@@ -27,7 +27,7 @@ myinfo_cmd = '''Usage: myinfo <verb> <fieldname> <value>
 Sets contact information for the profile. Available information which can be 
 set is listed below:
 
-FormattedName     GivenName         FamilyName        Nicknames
+FormattedName     GivenName         FamilyName        Nicknames+
 AdditionalNames+  Prefix            Suffixes+         Gender
 Social.           Mensago.          Bio               MailingAddresses.
 Phone.            Anniversary       Birthday          Email.
@@ -35,24 +35,111 @@ Organization.     Title             Categories+       Website
 Photo             Languages+        Notes             Attachments+
 Custom.
 
-Fields ending with a period are dictionaries (key-value pairs), and those ending with a + are
-lists of multiple values.
+Fields ending with a period are dictionaries (key-value pairs), and those
+ending with a + are lists of multiple values.
 
-Verbs used are `set`, `add`, `del`, and `check`. `add` appends a value to a list or dictionary.
-`del` takes an index for lists, a key name for dictionaries, or a field name for single values.
-`set` takes an index, key name, or field name like `del`, only changes existing values. If a field
-doesn't exist, it returns an error. `check` takes no arguments; it merely checks to make sure that
-all personal information fields are valid and that no required fields are missing.
+Verbs used are `set`, `add`, `del`, and `check`. `add` appends a value to a
+list or dictionary. `del` takes an index for lists, a key name for
+dictionaries, or a field name for single values. `set` takes an index, key
+name, or field name like `del`, only changes existing values. If a field
+doesn't exist, it returns an error. `check` takes no arguments; it merely
+checks to make sure that all personal information fields are valid and that
+no required fields are missing.
 
-Further information about the `myinfo` command can be found in the topic `myinfo_usage`.
+Further information about the `myinfo` command can be found in the topics
+`myinfo_usage` and `myinfo_fields`.
 '''
 
-myinfo_usage = '''
-Subfields are referenced by separating field names with a period. For example, adding one's
-Twitter handle, which would be a subfield of the dictionary field `Social`, would be performed with
-the command `myinfo set Social.Twitter @mytwitterhandle`.
+myinfo_usage = '''Subfields are referenced by separating field names with a
+period. For example, adding one's Twitter handle, which would be a subfield of
+the dictionary field `Social`, would be performed with the command `myinfo set
+Social.Twitter @mytwitterhandle`.
 
 Values which have spaces must be enclosed by double-quotes ("). 
+'''
+
+myinfo_fields = '''All fields are optional with the exception of
+Mensago.Workspace and Mensago.Domain.
+
+FormattedName - a person's first and last names with prefixes/suffixes
+
+GivenName, FamilyName - in the US, a person's first and last names
+
+Nicknames - a list of nicknames for the entity.
+
+AdditionalNames - a list of additional names for an entity. For many, this
+  is a person's middle name or names.
+
+Prefix - A prefix for an entity, such as 'Dr' or 'Ms'.
+
+Suffixes - A list of suffixes for an entity, such as 'Jr' or 'MD'
+
+Gender - A freeform text field for the entity's gender
+
+Social - A dictionary of social media accounts. The key should follow the
+  service's official formatting and capitalization, e.g Social.Facebook,
+  Social.Mastodon, etc.
+
+Mensago.UserID - The alphanumeric 'friendly' part of an entity's Mensago
+  address.
+
+Mensago.Workspace - REQUIRED. The UUID identifier for an entity's address
+
+Mensago.Domain - REQUIRED. The domain part of an entity's Mensago address
+
+Bio - a short blurb of biographical information
+'''
+
+myinfo_fields2 = '''MailingAddresses - A dictionary of dictionaries of mailing address
+  information. The name of the dictionary can have a * added to the end to
+  indicate the preferred address.
+
+MailingAddresses.<name>.POBox - Postal office box
+
+MailingAddresses.<name>.StreetAddress - An entity's street address
+
+MailingAddresses.<name>.ExtendedAddress - A second address line. Suite and
+  apartment numbers typically use this line.
+
+MailingAddresses.<name>.Locality - Usually the city in which the entity is
+  located.
+
+MailingAddresses.<name>.Region - In the US, this is the state in which the
+  entity is located.
+
+MailingAddresses.<name>.PostalCode - Postal office code for the address
+
+Phone - An dictionary of phone numbers. The name of the key can have a *
+  added to the end to indicate the preferred address.
+
+Anniversary, Birthday - Dates in the format YYMMDD or MMDD.
+
+Email - An dictionary of e-mail addresses. The name of the key can have a *
+  added to the end to indicate the preferred address.
+
+Organization.Name - The name of the organization.
+
+Organization.Units - A list of units indicating hierarchy in the organization.
+'''
+
+myinfo_fields3 = '''Title - The entity's business title
+
+Categories - A list of categories into which the entity has been grouped
+
+Website - a URL of the entity's website
+
+Photo - a JPEG, PNG, or WEBP no larger than 500KiB. The `myinfo` command
+  expects a file path to add or set this field.
+
+Languages - a list of languages in ISO 639-3 format. A list of languages can
+  be found at https://en.wikipedia.org/wiki/ISO_639-3 .
+
+Notes - Freeform notes about the entity.
+
+Attachments - A list of file attachments. The `myinfo` command expects a file
+  path to add or set this field.
+
+Custom - A dictionary of string fields.
 '''
 
 preregister_cmd='''Usage: preregister user_id [domain]
