@@ -332,19 +332,6 @@ class CommandProfile(BaseCommand):
 		return list()
 
 
-class CommandMyInfo(BaseCommand):
-	'''Set workspace information'''
-	def __init__(self):
-		super().__init__()
-		self.name = 'myinfo'
-		self.help = helptext.myinfo_cmd
-		self.description = 'Set workspace contact information'
-
-	def execute(self, shellstate: ShellState) -> RetVal:
-		# TODO: Implement SETINFO
-		return RetVal(ErrUnimplemented, 'Not implemented yet. Sorry!')
-
-
 class CommandShell(BaseCommand):
 	'''Perform shell commands'''
 	def __init__(self):

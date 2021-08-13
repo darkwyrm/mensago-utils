@@ -65,6 +65,61 @@ class CommandLogout(BaseCommand):
 		return shellstate.client.logout()
 
 
+class CommandMyInfo(BaseCommand):
+	'''Set workspace information'''
+	def __init__(self):
+		super().__init__()
+		self.name = 'myinfo'
+		self.help = helptext.myinfo_cmd
+		self.description = 'Set workspace contact information'
+
+	def validate(self, shellstate: ShellState) -> RetVal:
+		if len(self.tokens) in [1, 2, 3]:
+			return RetVal(ErrBadData, self.help)
+		
+		verb = self.tokens[0].casefold()
+		if verb not in [ 'set', 'add', 'del', 'check' ]:
+			return RetVal(ErrBadValue, "Verb must be 'add', 'set', 'del', or 'check'")
+		
+		self.args['verb'] = verb
+
+		field = ''
+		if verb == 'set' or verb == 'add':
+			if len(self.tokens) != 3:
+				return RetVal(ErrBadData, self.help)
+
+			field = self.tokens[1].casefold()
+			if not _is_field_valid(self.tokens[1]):
+				return RetVal(ErrBadValue, f"Invalid field specifier {field}")
+
+			if not self.tokens[2]:
+				return RetVal(ErrBadValue, "Value may note be empty")
+			
+			self.args['field'] = field
+			self.args['value'] = self.tokens[2]
+		
+		elif verb == 'del':
+			if len(self.tokens) != 2:
+				return RetVal(ErrBadData, self.help)
+
+			field = self.tokens[1].casefold()
+			if not _is_field_valid(self.tokens[1]):
+				return RetVal(ErrBadValue, f"Invalid field specifier {field}")
+			
+			self.args['field'] = field
+		
+		else:
+			# 'check'
+			if len(self.tokens) != 1:
+				return RetVal(ErrBadData, self.help)
+
+		return RetVal()
+
+	def execute(self, shellstate: ShellState) -> RetVal:
+		# TODO: Implement SETINFO
+		return RetVal(ErrUnimplemented, 'Not implemented yet. Sorry!')
+
+
 class CommandPreregister(BaseCommand):
 	'''Preregister an account for someone'''
 	def __init__(self):
@@ -259,3 +314,9 @@ def _setpassword_interactive():
 			return password
 		else:
 			print("Passwords do not match.")
+
+
+def _is_field_valid(fieldname: str) -> bool:
+	'''Validates the field name specifier passed to MyInfo'''
+	# TODO: implement _is_field_valid()
+	pass
