@@ -6,6 +6,7 @@ from pymensago.workspace import Workspace
 from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
 	ErrUnimplemented
 
+from pymensago.contacts import save_field
 from pymensago.encryption import Password, check_password_complexity
 import pymensago.iscmds as iscmds
 from pymensago.kcresolver import get_mgmt_record
@@ -74,13 +75,15 @@ class CommandMyInfo(BaseCommand):
 		self.description = 'Set workspace contact information'
 
 	def validate(self, shellstate: ShellState) -> RetVal:
-		if len(self.tokens) in [1, 2, 3]:
+		if len(self.tokens) <= 3:
 			return RetVal(ErrBadData, self.help)
 		
-		verb = self.tokens[0].casefold()
-		if verb not in [ 'set', 'add', 'del', 'check' ]:
-			return RetVal(ErrBadValue, "Verb must be 'add', 'set', 'del', or 'check'")
-		
+		if len(self.tokens):
+			verb = self.tokens[0].casefold()
+			if verb not in [ 'set', 'add', 'del', 'check', 'get' ]:
+				return RetVal(ErrBadValue, "Verb must be 'add', 'set', 'del', 'check', or 'get")
+		else:
+			verb = 'get'
 		self.args['verb'] = verb
 
 		field = ''
@@ -108,15 +111,26 @@ class CommandMyInfo(BaseCommand):
 			
 			self.args['field'] = field
 		
-		else:
+		elif verb == 'check':
 			# 'check'
 			if len(self.tokens) != 1:
 				return RetVal(ErrBadData, self.help)
+		
+		# Nothing needed for 'get' verb
 
 		return RetVal()
 
 	def execute(self, shellstate: ShellState) -> RetVal:
 		# TODO: Implement SETINFO
+		status = shellstate.client.pman.get_active_profile()
+		if not status.error():
+			profile = status['profile']
+		
+		if self.args['verb'] == 'set':
+			return save_field(profile.db, profile.wid, self.args['field'], self.args['value'],
+							'self')
+
+
 		return RetVal(ErrUnimplemented, 'Not implemented yet. Sorry!')
 
 
