@@ -58,8 +58,7 @@ class BaseCommand:
 		'''Sets the input and does some basic validation. This method expects the entire raw 
 		command, including the command name.'''
 
-		if not command:
-			self.args = dict()
+		self.args = dict()
 		
 		if not isinstance(command, str):
 			return RetVal(ErrBadType, 'command not a string')
