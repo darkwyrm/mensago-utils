@@ -105,7 +105,7 @@ class CommandMyInfo(BaseCommand):
 			if len(self.tokens) != 2:
 				return RetVal(ErrBadData, self.help)
 
-			field = self.tokens[1].casefold()
+			field = self.tokens[1]
 			if not _is_field_valid(self.tokens[1]):
 				return RetVal(ErrBadValue, f"Invalid field specifier {field}")
 			
@@ -116,7 +116,11 @@ class CommandMyInfo(BaseCommand):
 			if len(self.tokens) != 1:
 				return RetVal(ErrBadData, self.help)
 		
-		# Nothing needed for 'get' verb
+		elif verb == 'get':
+			if len(self.tokens) == 2:
+				self.args['field'] = self.tokens[1]
+			else:
+				self.args['field'] = '*'
 
 		return RetVal()
 

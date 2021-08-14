@@ -39,6 +39,9 @@ def test_myinfo():
 	shellstate = shellbase.ShellState(test_folder)
 	profman = userprofile.profman
 	data = server_reset.reset()
+	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
+		'MyS3cretPassw*rd')
+	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
 	
 	cmd = iscmds.CommandMyInfo()
 	cmdlist = [ 'myinfo set GivenName Corbin',
@@ -57,6 +60,15 @@ def test_myinfo():
 		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
 		status = cmd.execute(shellstate)
 		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+
+	status = cmd.set('myinfo get GivenName')
+	assert not status.error(), f"{funcname()}: single get.set failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: single get.validate failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: single get.execute failed: {status.error()}"
+	assert status['value'] == 'Corbin', f"{funcname()}: single get got wrong value {status['value']}"
+	assert status['group'] == 'self', f"{funcname()}: single get got wrong group '{status['group']}'"
 
 
 def test_regcode():
