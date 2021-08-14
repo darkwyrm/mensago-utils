@@ -33,6 +33,32 @@ def setup_test(name):
 	return test_folder
 
 
+def test_myinfo():
+	'''Tests the myinfo command'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState(test_folder)
+	profman = userprofile.profman
+	data = server_reset.reset()
+	
+	cmd = iscmds.CommandMyInfo()
+	cmdlist = [ 'myinfo set GivenName Corbin',
+				'myinfo set FamilyName Simons',
+				f"myinfo set Mensago.0.Workspace {data['admin']}",
+				'myinfo set Mensago.0.Domain example.com',
+				'myinfo set Mensago.0.UserID admin',
+				f"myinfo set Mensago.1.Workspace {data['abuse']}",
+				'myinfo set Mensago.1.Domain example.com',
+				'myinfo set Mensago.1.UserID abuse' ]
+
+	for entry in cmdlist:
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: command `{entry}` failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+
+
 def test_regcode():
 	'''Tests the regcode command'''
 	test_folder = setup_test(funcname())
@@ -222,7 +248,8 @@ def test_register():
 
 if __name__ == '__main__':
 	# test_login_logout()
+	test_myinfo()
 	# test_preregister_plus()
-	test_profile()
+	# test_profile()
 	# test_regcode()
 	# test_register()

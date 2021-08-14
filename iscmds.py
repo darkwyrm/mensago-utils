@@ -75,7 +75,7 @@ class CommandMyInfo(BaseCommand):
 		self.description = 'Set workspace contact information'
 
 	def validate(self, shellstate: ShellState) -> RetVal:
-		if len(self.tokens) <= 3:
+		if len(self.tokens) > 3:
 			return RetVal(ErrBadData, self.help)
 		
 		if len(self.tokens):
@@ -91,7 +91,7 @@ class CommandMyInfo(BaseCommand):
 			if len(self.tokens) != 3:
 				return RetVal(ErrBadData, self.help)
 
-			field = self.tokens[1].casefold()
+			field = self.tokens[1]
 			if not _is_field_valid(self.tokens[1]):
 				return RetVal(ErrBadValue, f"Invalid field specifier {field}")
 
@@ -336,4 +336,4 @@ def _setpassword_interactive():
 def _is_field_valid(fieldname: str) -> bool:
 	'''Validates the field name specifier passed to MyInfo'''
 	# TODO: implement _is_field_valid()
-	pass
+	return True
