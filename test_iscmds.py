@@ -78,6 +78,17 @@ def test_myinfo():
 	assert status['value'] == 'Corbin', f"{funcname()}: single get got wrong value {status['value']}"
 	assert status['group'] == 'self', f"{funcname()}: single get got wrong group '{status['group']}'"
 
+	status = cmd.set('myinfo get')
+	assert not status.error(), f"{funcname()}: multiple get.set failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: multiple get.validate failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: multiple get.execute failed: {status.error()}"
+	assert 'value' in status and len(status['value']) == len(cmdlist), \
+		f"{funcname()}: multiple get got wrong number of values"
+	assert 'group' in status and len(status['group']) == len(cmdlist), \
+		f"{funcname()}: multiple get got wrong number of groups"
+
 	# Test deleting
 	status = cmd.set('myinfo del Annotations.Nicknames.2')
 	assert not status.error(), f"{funcname()}: del.set failed: {status.error()}"
