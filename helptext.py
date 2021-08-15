@@ -29,32 +29,22 @@ set is listed below:
 
 FormattedName     GivenName         FamilyName        Nicknames+
 AdditionalNames+  Prefix            Suffixes+         Gender
-Social.           Mensago.          Bio               MailingAddresses.
-Phone.            Anniversary       Birthday          Email.
-Organization.     Title             Categories+       Website
+Social+           Mensago+          Bio               MailingAddresses+
+Phone+            Anniversary       Birthday          Email+
+Organization+     Title             Categories+       Websites+
 Photo             Languages+        Notes             Attachments+
-Custom.
+Custom+
 
-Fields ending with a period are dictionaries (key-value pairs), and those
-ending with a + are lists of multiple values.
+Fields ending with a + are lists of multiple values.
 
 Verbs used are `set`, `get`, `del`, and `check`. `get`, which is also performed
 if no verb is specified, displays the value of a specific field. If no field
 is specified, all fields are displayed. `del` deletes a field. `set` adds or
 changes fields. `check` takes no arguments; it merely checks to make sure that
 all personal information fields are valid and that no required fields are
-missing.
+missing. Values which have spaces must be enclosed by double-quotes (").
 
-Further information about the `myinfo` command can be found in the topics
-`myinfo_usage` and `myinfo_fields`.
-'''
-
-myinfo_usage = '''Subfields are referenced by separating field names with a
-period. For example, adding one's Twitter handle, which would be a subfield of
-the dictionary field `Social`, would be performed with the command `myinfo set
-Social.Twitter @mytwitterhandle`.
-
-Values which have spaces must be enclosed by double-quotes ("). 
+Detailed information fields can be found in the `myinfo_fields` topic.
 '''
 
 myinfo_fields = '''All fields are optional with the exception of
