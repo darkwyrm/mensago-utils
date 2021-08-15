@@ -46,7 +46,6 @@ def init_commands():
 		parts.append(f"<gray><b>{name.rjust(maxlength)}</b>  {item.description}</gray>")
 	shellhelp.addtopic('commands', '\n'.join(parts), None)
 
-	shellhelp.addtopic('myinfo_usage', helptext.myinfo_usage, None)
 	shellhelp.addtopic('myinfo_fields', helptext.myinfo_fields, None)
 	shellhelp.addtopic('myinfo_fields2', helptext.myinfo_fields2, None)
 	shellhelp.addtopic('myinfo_fields3', helptext.myinfo_fields3, None)
