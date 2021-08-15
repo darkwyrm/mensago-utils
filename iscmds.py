@@ -405,3 +405,14 @@ def _is_field_valid(fieldname: str) -> bool:
 		return parts[0] in _dictlist_fields and parts[2] in _dictlist_fields[parts[0]].keys()
 
 	return False
+
+
+def _check_myinfo(shellstate: ShellState) -> RetVal:
+	'''This function performs a complete check of the userinfo stored in the database and confirms 
+	that it complies with the spec.'''
+	
+	status = shellstate.client.pman.get_active_profile()
+	if not status.error():
+		profile = status['profile']
+	status = load_field(profile.db, profile.wid, '*')
+	fields = status['values']

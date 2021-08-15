@@ -84,6 +84,8 @@ def test_myinfo():
 	assert not status.error(), f"{funcname()}: multiple get.validate failed: {status.error()}"
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: multiple get.execute failed: {status.error()}"
+	assert 'name' in status and len(status['name']) == len(cmdlist), \
+		f"{funcname()}: multiple get got wrong number of names"
 	assert 'value' in status and len(status['value']) == len(cmdlist), \
 		f"{funcname()}: multiple get got wrong number of values"
 	assert 'group' in status and len(status['group']) == len(cmdlist), \
