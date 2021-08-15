@@ -337,7 +337,71 @@ def _setpassword_interactive():
 			print("Passwords do not match.")
 
 
+_toplevel_fields = [
+	'FormattedName',
+	'GivenName',
+	'FamilyName',
+	'Prefix',
+	'Gender',
+	'Bio',
+	'Anniversary',
+	'Birthday',
+	'Email',
+	'Organization',
+	'Title',
+	'Notes',
+]
+
+_list_fields = [
+	'Nicknames',
+	'AdditionalNames',
+	'Suffixes',
+	'OrgUnits',
+	'Categories',
+	'Languages',
+]
+
+_dictlist_fields = {
+	'Phone' : { 'Label':True, 'Value':True, 'Preferred':False },
+	'Social' : { 'Label':True, 'Value':True, 'Preferred':False },
+	'Messaging' : { 'Label':True, 'Value':True, 'Preferred':False },
+	'Websites' : { 'Label':True, 'Value':True, 'Preferred':False },
+	'Custom' : { 'Label':True, 'Value':True },
+	'Mensago' : { 'Label':True, 'UserID':False, 'Workspace':True, 'Domain':True, 'Preferred':False },
+	'Keys' : { 'Label':True, 'KeyType':True, 'KeyHash':True, 'Value':True},
+	'MailingAddresses' : { 'Label':True, 'POBox':False, 'StreetAddress':False, 'ExtendedAddress':False,
+							'Locality':False, 'Region':False, 'PostalCode':False, 'Country':False,
+							'Preferred':False },
+	'Photo' : { 'Mime':True, 'Data':True },
+	'Attachments' : { 'Name':True, 'Mime':True, 'Data':True },
+}
+
+
 def _is_field_valid(fieldname: str) -> bool:
-	'''Validates the field name specifier passed to MyInfo'''
-	# TODO: implement _is_field_valid()
-	return True
+	'''Validates the field name specifier passed to MyInfo. This function is very specific to the
+	Mensago contacts spec and will not permit fields outside the spec.'''
+
+	parts = fieldname.split('.')
+
+	if parts[0] == 'Annotations':
+		parts = parts[1:]
+
+	if len(parts) == 1:
+		return parts[0] in _toplevel_fields
+	
+	if len(parts) == 2:
+		try:
+			_ = int(parts[1])
+		except:
+			return False
+		return parts[0] in _list_fields
+
+	if len(parts) == 3:
+		try:
+			_ = int(parts[1])
+		except:
+			return False
+		
+		return parts[0] in _dictlist_fields and parts[2] in _dictlist_fields[parts[0]].keys()
+
+	return False
