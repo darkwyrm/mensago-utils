@@ -3,8 +3,10 @@ import os
 import shutil
 import time
 
+from pymensago.contacts import load_field
 import pymensago.userprofile as userprofile
 from pymensago.utils import MAddress
+from retval import ErrNotFound
 
 import iscmds
 import server_reset
@@ -51,8 +53,13 @@ def test_myinfo():
 				'myinfo set Mensago.0.UserID admin',
 				f"myinfo set Mensago.1.Workspace {data['abuse']}",
 				'myinfo set Mensago.1.Domain example.com',
-				'myinfo set Mensago.1.UserID abuse' ]
+				'myinfo set Mensago.1.UserID abuse',
+				'myinfo set Annotations.Nicknames.0 Test1',
+				'myinfo set Annotations.Nicknames.1 Test2',
+				'myinfo set Annotations.Nicknames.2 Test3',
+				]
 
+	# Test setting + setup for other subtests
 	for entry in cmdlist:
 		status = cmd.set(entry)
 		assert not status.error(), f"{funcname()}: command `{entry}` failed: {status.error()}"
@@ -61,6 +68,7 @@ def test_myinfo():
 		status = cmd.execute(shellstate)
 		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
 
+	# Test getting
 	status = cmd.set('myinfo get GivenName')
 	assert not status.error(), f"{funcname()}: single get.set failed: {status.error()}"
 	status = cmd.validate(shellstate)
@@ -69,6 +77,28 @@ def test_myinfo():
 	assert not status.error(), f"{funcname()}: single get.execute failed: {status.error()}"
 	assert status['value'] == 'Corbin', f"{funcname()}: single get got wrong value {status['value']}"
 	assert status['group'] == 'self', f"{funcname()}: single get got wrong group '{status['group']}'"
+
+	# Test deleting
+	status = cmd.set('myinfo del Annotations.Nicknames.2')
+	assert not status.error(), f"{funcname()}: del.set failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: del.validate failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: del.execute failed: {status.error()}"
+
+	status = profman.get_active_profile()
+	assert not status.error(), f"{funcname()}: failed to get active profile: {status.error()}"
+	profile = status['profile']
+	status = load_field(profile.db, profile.wid, 'Annotations.Nicknames.2')
+	assert status.error() == ErrNotFound, \
+		f"{funcname()}: del failed to delete value: {status.error()}"
+
+	# Erroneous set tests
+	status = cmd.set('myinfo set Annotations.Nicknames.1 ""')
+	assert not status.error(), f"{funcname()}: failed to set.set empty value: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert status.error(), \
+		f"{funcname()}: set.validate failed to catch empty value: {status.error()}"
 
 
 def test_regcode():
