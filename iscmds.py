@@ -7,6 +7,7 @@ from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, Err
 	ErrUnimplemented
 
 from pymensago.contacts import delete_field, save_field, load_field
+from pymensago.flatcontact import unflatten
 from pymensago.encryption import Password, check_password_complexity
 import pymensago.iscmds as iscmds
 from pymensago.kcresolver import get_mgmt_record
@@ -137,6 +138,15 @@ class CommandMyInfo(BaseCommand):
 			return delete_field(profile.db, profile.wid, self.args['field'])
 		elif self.args['verb'] == 'get':
 			return load_field(profile.db, profile.wid, self.args['field'])
+		elif self.args['verb'] == 'check':
+			status = _check_myinfo(shellstate)
+			if status.error():
+				out = [ 'The following fields were invalid:' ]
+				out.extend(status['errors']['invalid'])
+				out.append('\nThe following field components were missing:')
+				out.extend(status['errors']['missing'])
+				return RetVal(ErrBadData, '\n'.join(out))
+			return RetVal(ErrOK, 'User contact info is compliant')
 
 		return load_field(profile.db, profile.wid, '*')
 
@@ -415,4 +425,45 @@ def _check_myinfo(shellstate: ShellState) -> RetVal:
 	if not status.error():
 		profile = status['profile']
 	status = load_field(profile.db, profile.wid, '*')
-	fields = status['values']
+	if status.error():
+		return status
+
+	errors = dict()
+
+	# Check validity of all fields
+	for field in status['names']:
+		if not _is_field_valid(field):
+			if 'invalid' not in errors:
+				errors['invalid'] = list()
+			errors['invalid'].append(field)
+	
+	# Check for required values. If we got this far, then all field names are valid. We just need
+	# to ensure that subfields that are required exist.
+	# Merge the values into a dictionary so we can unflatten and verify	
+	flatcontact = dict()
+	for i in range(len(status['names'])):
+		flatcontact[status['names'][i]] = status['values'][i]
+	status.empty()
+	status = unflatten(flatcontact)
+	if status.error():
+		return status
+
+	for toplevel in _dictlist_fields.keys():
+		
+		# Checks only matter if the field itself exists in the contact
+		if toplevel in flatcontact:
+
+			# The field exists in the contact, so we will check to ensure that each required field
+			# in the spec for the entry actually exists
+			for item in flatcontact[toplevel]:
+				for key in _dictlist_fields[toplevel].keys():
+					# Each item is true if it is required
+					if _dictlist_fields[toplevel][key] and key not in item:
+						if 'missing' not in errors:
+							errors['missing'] = list()
+						errors['missing'].append(f'{key} missing from {toplevel} item')
+
+	if len(errors):
+		return RetVal(ErrBadData).set_value('errors', errors)
+	
+	return RetVal()
