@@ -137,7 +137,18 @@ class CommandMyInfo(BaseCommand):
 		elif self.args['verb'] == 'del':
 			return delete_field(profile.db, profile.wid, self.args['field'])
 		elif self.args['verb'] == 'get':
-			return load_field(profile.db, profile.wid, self.args['field'])
+			status =  load_field(profile.db, profile.wid, self.args['field'])
+			if status.error():
+				return status
+			
+			if self.args['field'] == '*':
+				out = list()
+				for i in range(len(status['name'])):
+					out.append(f"{status['name'][i]}: {status['value'][i]}")
+				RetVal(ErrOK, '\n'.join(out))
+			
+			return status.set_info(status['value'])
+			
 		elif self.args['verb'] == 'check':
 			status = _check_myinfo(shellstate)
 			if status.error():
