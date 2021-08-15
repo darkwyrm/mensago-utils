@@ -141,11 +141,20 @@ class CommandMyInfo(BaseCommand):
 		elif self.args['verb'] == 'check':
 			status = _check_myinfo(shellstate)
 			if status.error():
-				out = [ 'The following fields were invalid:' ]
-				out.extend(status['errors']['invalid'])
-				out.append('\nThe following field components were missing:')
-				out.extend(status['errors']['missing'])
-				return RetVal(ErrBadData, '\n'.join(out))
+				out = list()
+				outstatus = RetVal(ErrBadData)
+				if 'invalid' in status['errors']:
+					out.append('The following fields were invalid:')
+					out.extend(status['errors']['invalid'])
+					outstatus.set_value('invalid', status['errors']['invalid'])
+				
+				if 'missing' in status['errors']:
+					out.append('\nThe following field components were missing:')
+					out.extend(status['errors']['missing'])
+					outstatus.set_value('missing', status['errors']['missing'])
+				
+				outstatus.set_info('\n'.join(out))
+				return outstatus 
 			return RetVal(ErrOK, 'User contact info is compliant')
 
 		return load_field(profile.db, profile.wid, '*')
@@ -431,7 +440,7 @@ def _check_myinfo(shellstate: ShellState) -> RetVal:
 	errors = dict()
 
 	# Check validity of all fields
-	for field in status['names']:
+	for field in status['name']:
 		if not _is_field_valid(field):
 			if 'invalid' not in errors:
 				errors['invalid'] = list()
@@ -441,21 +450,23 @@ def _check_myinfo(shellstate: ShellState) -> RetVal:
 	# to ensure that subfields that are required exist.
 	# Merge the values into a dictionary so we can unflatten and verify	
 	flatcontact = dict()
-	for i in range(len(status['names'])):
-		flatcontact[status['names'][i]] = status['values'][i]
+	for i in range(len(status['name'])):
+		flatcontact[status['name'][i]] = status['value'][i]
 	status.empty()
 	status = unflatten(flatcontact)
 	if status.error():
 		return status
+	
+	contact = status['value']
 
 	for toplevel in _dictlist_fields.keys():
 		
 		# Checks only matter if the field itself exists in the contact
-		if toplevel in flatcontact:
+		if toplevel in contact:
 
 			# The field exists in the contact, so we will check to ensure that each required field
 			# in the spec for the entry actually exists
-			for item in flatcontact[toplevel]:
+			for item in contact[toplevel]:
 				for key in _dictlist_fields[toplevel].keys():
 					# Each item is true if it is required
 					if _dictlist_fields[toplevel][key] and key not in item:

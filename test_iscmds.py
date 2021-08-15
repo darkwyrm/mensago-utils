@@ -130,6 +130,67 @@ def test_myinfo():
 	assert status.error(), f"{funcname()}: get.execute failed to catch nonexistent field"
 
 
+def test_myinfo_check():
+	'''Tests the myinfo check subcommand'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState(test_folder)
+	_ = userprofile.profman
+	data = server_reset.reset()
+	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
+		'MyS3cretPassw*rd')
+	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
+	
+	cmd = iscmds.CommandMyInfo()
+	cmdlist = [ 'myinfo set GivenName Corbin',
+				'myinfo set FamilyName Simons',
+				f"myinfo set Mensago.0.Workspace {data['admin']}",
+				'myinfo set Mensago.0.Domain example.com',
+				'myinfo set Mensago.0.UserID admin',
+				f"myinfo set Mensago.1.Workspace {data['abuse']}",
+				'myinfo set Mensago.1.Domain example.com',
+				'myinfo set Mensago.1.UserID abuse',
+				]
+
+	# Test setup
+	for entry in cmdlist:
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: command `{entry}` failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+
+	# Contact info is so far not compliant
+	status = cmd.set('myinfo check')
+	assert not status.error(), f"{funcname()}: check failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: check failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert status.error(), f"{funcname()}: check failed to catch noncompliance: {status.error()}"
+	assert 'missing' in status and len(status['missing']) == 2, \
+		f"{funcname()}: check returned wrong missing fields"
+
+	# Set two fields and it will be
+	cmdlist = [ f"myinfo set Mensago.0.Label Admin",
+				f"myinfo set Mensago.1.Label Abuse",
+			]
+
+	for entry in cmdlist:
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: command `{entry}` failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+	
+	status = cmd.set('myinfo check')
+	assert not status.error(), f"{funcname()}: check failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: check failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: check: {status.error()}"
+
+
 def test_regcode():
 	'''Tests the regcode command'''
 	test_folder = setup_test(funcname())
@@ -320,6 +381,7 @@ def test_register():
 if __name__ == '__main__':
 	# test_login_logout()
 	test_myinfo()
+	test_myinfo_check()
 	# test_preregister_plus()
 	# test_profile()
 	# test_regcode()
