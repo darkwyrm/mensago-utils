@@ -93,12 +93,28 @@ def test_myinfo():
 	assert status.error() == ErrNotFound, \
 		f"{funcname()}: del failed to delete value: {status.error()}"
 
+	# repeating the del test -- deleting a nonexistent field should return no error
+	status = cmd.set('myinfo del Annotations.Nicknames.2')
+	assert not status.error(), f"{funcname()}: del.set failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: del.validate failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert not status.error(), f"{funcname()}: del.execute failed: {status.error()}"
+
 	# Erroneous set tests
 	status = cmd.set('myinfo set Annotations.Nicknames.1 ""')
 	assert not status.error(), f"{funcname()}: failed to set.set empty value: {status.error()}"
 	status = cmd.validate(shellstate)
 	assert status.error(), \
 		f"{funcname()}: set.validate failed to catch empty value: {status.error()}"
+
+	# Erroneous get tests
+	status = cmd.set('myinfo get NonExistent')
+	assert not status.error(), f"{funcname()}: get.set nonexistent failed: {status.error()}"
+	status = cmd.validate(shellstate)
+	assert not status.error(), f"{funcname()}: get.validate nonexistent failed: {status.error()}"
+	status = cmd.execute(shellstate)
+	assert status.error(), f"{funcname()}: get.execute failed to catch nonexistent field"
 
 
 def test_regcode():
