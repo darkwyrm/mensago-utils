@@ -38,13 +38,12 @@ Custom.
 Fields ending with a period are dictionaries (key-value pairs), and those
 ending with a + are lists of multiple values.
 
-Verbs used are `set`, `add`, `del`, and `check`. `add` appends a value to a
-list or dictionary. `del` takes an index for lists, a key name for
-dictionaries, or a field name for single values. `set` takes an index, key
-name, or field name like `del`, only changes existing values. If a field
-doesn't exist, it returns an error. `check` takes no arguments; it merely
-checks to make sure that all personal information fields are valid and that
-no required fields are missing.
+Verbs used are `set`, `get`, `del`, and `check`. `get`, which is also performed
+if no verb is specified, displays the value of a specific field. If no field
+is specified, all fields are displayed. `del` deletes a field. `set` adds or
+changes fields. `check` takes no arguments; it merely checks to make sure that
+all personal information fields are valid and that no required fields are
+missing.
 
 Further information about the `myinfo` command can be found in the topics
 `myinfo_usage` and `myinfo_fields`.
@@ -59,16 +58,16 @@ Values which have spaces must be enclosed by double-quotes (").
 '''
 
 myinfo_fields = '''All fields are optional with the exception of
-Mensago.Workspace and Mensago.Domain.
+Mensago.<index>.Workspace and Mensago.<index>.Domain.
 
 FormattedName - a person's first and last names with prefixes/suffixes
 
 GivenName, FamilyName - in the US, a person's first and last names
 
-Nicknames - a list of nicknames for the entity.
+Nicknames.<index> - a list of nicknames for the entity.
 
-AdditionalNames - a list of additional names for an entity. For many, this
-  is a person's middle name or names.
+AdditionalNames.<index> - a list of additional names for an entity. For many,
+  this is a person's middle name or names.
 
 Prefix - A prefix for an entity, such as 'Dr' or 'Ms'.
 
@@ -76,11 +75,14 @@ Suffixes - A list of suffixes for an entity, such as 'Jr' or 'MD'
 
 Gender - A freeform text field for the entity's gender
 
-Social - A dictionary of social media accounts. The key should follow the
-  service's official formatting and capitalization, e.g Social.Facebook,
-  Social.Mastodon, etc.
+Social.<index>.Label - The name of a social media account. If used, the
+  corresponding Value field is required
 
-Mensago.UserID - The alphanumeric 'friendly' part of an entity's Mensago
+Social.<index>.Value - The URL of a social media account profile page. If a
+  network does not provide profile pages, this should contain the user's handle.
+  If used, the corresponding Label field is required.
+
+Mensago.<index>.UserID - The alphanumeric 'friendly' part of an entity's Mensago
   address.
 
 Mensago.Workspace - REQUIRED. The UUID identifier for an entity's address
@@ -126,7 +128,11 @@ myinfo_fields3 = '''Title - The entity's business title
 
 Categories - A list of categories into which the entity has been grouped
 
-Website - a URL of the entity's website
+Websites.<index>.Label - The name or type of website. If used, the corresponding
+ Value field is required.
+
+Websites.<index>.Value - The URL of the website. If used, the corresponding
+ Label field is required.
 
 Photo - a JPEG, PNG, or WEBP no larger than 500KiB. The `myinfo` command
   expects a file path to add or set this field.
