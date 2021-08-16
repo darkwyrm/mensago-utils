@@ -329,6 +329,7 @@ class CommandRegCode(BaseCommand):
 		status = shellstate.client.pman.get_active_profile()
 		if status.error():
 			return status
+		profile = status['profile']
 
 		status = shellstate.client.redeem_regcode(addr, self.tokens[1], self.args['password'])
 		if status.error():
@@ -336,6 +337,13 @@ class CommandRegCode(BaseCommand):
 			out.set_info(f"An error occurred: {status.error()} / {status.info()}")
 			return out
 
+		save_field(profile.db, profile.wid, 'Mensago.0.Label', 'Primary', 'self')
+		save_field(profile.db, profile.wid, 'Mensago.0.Workspace', profile.wid.as_string(), 'self')
+		save_field(profile.db, profile.wid, 'Mensago.0.Domain', profile.domain.as_string(), 'self')
+		if not addr.id.is_wid():
+			save_field(profile.db, profile.wid, 'Mensago.0.UserID', addr.id.as_string(), 'self')
+		
+		# TODO: Ask user for first and last name
 
 		return RetVal(ErrOK, 'Registration code redeemed successfully')
 
