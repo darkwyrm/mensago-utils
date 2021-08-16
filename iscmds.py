@@ -1,16 +1,11 @@
 '''Contains the implementations for shell commands'''
 from getpass import getpass
 
-from pycryptostring import CryptoString
-from pymensago.workspace import Workspace
-from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrEmptyData, ErrOK, ErrServerError, \
-	ErrUnimplemented
+from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrOK, ErrServerError
 
 from pymensago.contacts import delete_field, save_field, load_field
 from pymensago.flatcontact import unflatten
-from pymensago.encryption import Password, check_password_complexity
-import pymensago.iscmds as iscmds
-from pymensago.kcresolver import get_mgmt_record
+from pymensago.encryption import check_password_complexity
 from pymensago.utils import MAddress, UserID, Domain
 
 import helptext
@@ -340,6 +335,7 @@ class CommandRegCode(BaseCommand):
 			out = status
 			out.set_info(f"An error occurred: {status.error()} / {status.info()}")
 			return out
+
 
 		return RetVal(ErrOK, 'Registration code redeemed successfully')
 
