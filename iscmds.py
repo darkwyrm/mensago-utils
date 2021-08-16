@@ -145,7 +145,7 @@ class CommandMyInfo(BaseCommand):
 				out = list()
 				for i in range(len(status['name'])):
 					out.append(f"{status['name'][i]}: {status['value'][i]}")
-				RetVal(ErrOK, '\n'.join(out))
+				return RetVal(ErrOK, '\n'.join(out))
 			
 			return status.set_info(status['value'])
 			
