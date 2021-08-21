@@ -3,7 +3,7 @@ from getpass import getpass
 
 from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrOK, ErrServerError
 
-from pymensago.contacts import delete_field, save_field, load_field
+from pymensago.contacts import delete_field, save_field, load_field, save_list_field
 from pymensago.flatcontact import unflatten
 from pymensago.encryption import check_password_complexity
 from pymensago.utils import MAddress, UserID, Domain
@@ -276,7 +276,27 @@ class CommandRegister(BaseCommand):
 		if status.error():
 			return status
 
-		# TODO: Assign name to account
+		if self.tokens[1].casefold() != 'none':
+			status = shellstate.client.pman.get_active_profile()
+			if status.error():
+				return status
+			profile = status['profile']
+			parts = self.tokens[1].split(' ')
+			
+			if len(parts) == 1 and parts[0]:
+				profile.save_field('GivenName', parts[0])
+				profile.save_field('FormattedName', parts[0])
+			elif len(parts) == 2:
+				profile.save_field('GivenName', parts[0])
+				profile.save_field('FamilyName', parts[1])
+				profile.save_field('FormattedName', self.tokens[1])
+			elif len(parts) > 2:
+				profile.save_field('GivenName', parts[0])
+				profile.save_field('FamilyName', parts[-1])
+				profile.save_field('FormattedName', self.tokens[1])
+				save_list_field(profile.db, profile.wid, 'AdditionalNames', parts[1:-1])
+
+
 		# TODO: Add an entry to the keycard
 		# TODO: Save signed keycard to database
 		
