@@ -127,12 +127,11 @@ class CommandMyInfo(BaseCommand):
 			profile = status['profile']
 		
 		if self.args['verb'] == 'set':
-			return save_field(profile.db, profile.wid, self.args['field'], self.args['value'],
-							'self')
+			return profile.save_field(self.args['field'], self.args['value'])
 		elif self.args['verb'] == 'del':
 			return delete_field(profile.db, profile.wid, self.args['field'])
 		elif self.args['verb'] == 'get':
-			status =  load_field(profile.db, profile.wid, self.args['field'])
+			status = profile.load_field(self.args['field'])
 			if status.error():
 				return status
 			
@@ -368,11 +367,14 @@ class CommandRegCode(BaseCommand):
 			out.set_info(f"An error occurred: {status.error()} / {status.info()}")
 			return out
 
-		save_field(profile.db, profile.wid, 'Mensago.0.Label', 'Primary', 'self')
-		save_field(profile.db, profile.wid, 'Mensago.0.Workspace', profile.wid.as_string(), 'self')
-		save_field(profile.db, profile.wid, 'Mensago.0.Domain', profile.domain.as_string(), 'self')
+		workspace_data = {
+				'Label':		'Primary',
+				'Workspace':	profile.wid.as_string(),
+				'Domain':		profile.domain.as_string(),
+		}
 		if not addr.id.is_wid():
-			save_field(profile.db, profile.wid, 'Mensago.0.UserID', addr.id.as_string(), 'self')
+			workspace_data['UserID'] = addr.id.as_string()
+		profile.save_list_field('Mensago', [ workspace_data ])
 		
 		# TODO: Ask user for first and last name
 
