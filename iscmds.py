@@ -261,8 +261,9 @@ class CommandRegister(BaseCommand):
 				return RetVal()
 			self.args['password'] = password
 
+		uid = UserID(self.args['userid'])
 		status = shellstate.client.register_account(Domain(self.tokens[0]), self.args['password'], 
-													UserID(self.args['userid']))
+													uid)
 		
 		returncodes = {
 			304:"This server does not allow self-registration.",
@@ -276,11 +277,12 @@ class CommandRegister(BaseCommand):
 		if status.error():
 			return status
 
+		status = shellstate.client.pman.get_active_profile()
+		if status.error():
+			return status
+		profile = status['profile']
+		
 		if self.tokens[1].casefold() != 'none':
-			status = shellstate.client.pman.get_active_profile()
-			if status.error():
-				return status
-			profile = status['profile']
 			parts = self.tokens[1].split(' ')
 			
 			if len(parts) == 1 and parts[0]:
@@ -295,6 +297,15 @@ class CommandRegister(BaseCommand):
 				profile.save_field('FamilyName', parts[-1])
 				profile.save_field('FormattedName', self.tokens[1])
 				save_list_field(profile.db, profile.wid, 'AdditionalNames', parts[1:-1])
+		
+		workspace_data = {
+				'Label':		'Primary',
+				'Workspace':	profile.wid.as_string(),
+				'Domain':		profile.domain.as_string(),
+		}
+		if not uid.is_wid():
+			workspace_data['UserID'] = uid.as_string()
+		profile.save_list_field('Mensago', [ workspace_data ])
 
 
 		# TODO: Add an entry to the keycard
