@@ -305,7 +305,7 @@ class CommandRegister(BaseCommand):
 		}
 		if not uid.is_wid():
 			workspace_data['UserID'] = uid.as_string()
-		profile.save_list_field('Mensago', [ workspace_data ])
+		save_user_list_field(profile.db, 'Mensago', [ workspace_data ])
 
 
 		# TODO: Add an entry to the keycard
@@ -375,7 +375,7 @@ class CommandRegCode(BaseCommand):
 		}
 		if not addr.id.is_wid():
 			workspace_data['UserID'] = addr.id.as_string()
-		profile.save_list_field('Mensago', [ workspace_data ])
+		save_user_list_field(profile.db, 'Mensago', [ workspace_data ])
 		
 		# TODO: Ask user for first and last name
 
