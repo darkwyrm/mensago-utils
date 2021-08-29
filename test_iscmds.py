@@ -354,6 +354,16 @@ def test_register():
 	test_folder = setup_test(funcname())
 	shellstate = shellbase.ShellState(test_folder)
 	profman = userprofile.profman
+	
+	data = server_reset.reset()
+	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
+		'MyS3cretPassw*rd')
+	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
+
+	status = profman.create_profile('testuser')
+	assert not status.error(), f"{funcname()}: failed to create test user profile: {status.error()}"
+	status = profman.activate_profile('testuser')
+	assert not status.error(), f"{funcname()}: failed to activate test user profile: {status.error()}"
 
 	cmd = iscmds.CommandRegister()
 	cmdlist = [ 'register example.com "Corbin Simons" userid=csimons password=MyS3cretPassw*rd' ]
@@ -380,9 +390,9 @@ def test_register():
 
 if __name__ == '__main__':
 	# test_login_logout()
-	test_myinfo()
-	test_myinfo_check()
+	# test_myinfo()
+	# test_myinfo_check()
 	# test_preregister_plus()
 	# test_profile()
 	# test_regcode()
-	# test_register()
+	test_register()
