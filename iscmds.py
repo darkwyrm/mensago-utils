@@ -369,13 +369,16 @@ class CommandRegCode(BaseCommand):
 			return out
 
 		workspace_data = {
-				'Label':		'Primary',
-				'Workspace':	profile.wid.as_string(),
-				'Domain':		profile.domain.as_string(),
+			'Mensago.0.Label':		'Primary',
+			'Mensago.0.Workspace':	profile.wid.as_string(),
+			'Mensago.0.Domain':		profile.domain.as_string(),
 		}
+
 		if not addr.id.is_wid():
-			workspace_data['UserID'] = addr.id.as_string()
-		save_user_list_field(profile.db, 'Mensago', [ workspace_data ])
+			workspace_data['Mensago.0.UserID'] = addr.id.as_string()
+
+		for k,v in workspace_data.items():
+			save_user_field(profile.db, k, v)
 		
 		# TODO: Ask user for first and last name
 
@@ -482,7 +485,7 @@ def _check_myinfo(shellstate: ShellState) -> RetVal:
 	status = shellstate.client.pman.get_active_profile()
 	if not status.error():
 		profile = status['profile']
-	status = load_user_field(profile.db, profile.wid, '*')
+	status = load_user_field(profile.db, '*')
 	if status.error():
 		return status
 
