@@ -76,7 +76,6 @@ def test_myinfo():
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: single get.execute failed: {status.error()}"
 	assert status['value'] == 'Corbin', f"{funcname()}: single get got wrong value {status['value']}"
-	assert status['group'] == 'self', f"{funcname()}: single get got wrong group '{status['group']}'"
 
 	status = cmd.set('myinfo get')
 	assert not status.error(), f"{funcname()}: multiple get.set failed: {status.error()}"
@@ -84,12 +83,8 @@ def test_myinfo():
 	assert not status.error(), f"{funcname()}: multiple get.validate failed: {status.error()}"
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: multiple get.execute failed: {status.error()}"
-	assert 'name' in status and len(status['name']) == len(cmdlist), \
-		f"{funcname()}: multiple get got wrong number of names"
-	assert 'value' in status and len(status['value']) == len(cmdlist), \
-		f"{funcname()}: multiple get got wrong number of values"
-	assert 'group' in status and len(status['group']) == len(cmdlist), \
-		f"{funcname()}: multiple get got wrong number of groups"
+	assert status.info(), \
+		f"{funcname()}: multiple get.execute failed to get useful data: {status.error()}"
 
 	# Test deleting
 	status = cmd.set('myinfo del Annotations.Nicknames.2')
@@ -189,43 +184,6 @@ def test_myinfo_check():
 	assert not status.error(), f"{funcname()}: check failed: {status.error()}"
 	status = cmd.execute(shellstate)
 	assert not status.error(), f"{funcname()}: check: {status.error()}"
-
-
-def test_regcode():
-	'''Tests the regcode command'''
-	test_folder = setup_test(funcname())
-	shellstate = shellbase.ShellState(test_folder)
-	profman = userprofile.profman
-
-	cmd = iscmds.CommandRegCode()
-	cmdlist = [ 'regcode <ADMINWID> <REGCODE> MyS3cretPassw*rd',
-				'regcode admin/example.com <REGCODE> MyS3cretPassw*rd' ]
-
-	for entry in cmdlist:
-		pnames = [p.name for p in profman.get_profiles()]
-		if funcname() in pnames:
-			profman.activate_profile('primary')
-			profman.delete_profile(funcname())
-		
-		profman.create_profile(funcname())
-		profman.activate_profile(funcname())
-
-		data = server_reset.reset()
-		
-		entry = entry.replace('<ADMINWID>', data['admin'])
-		entry = entry.replace('<REGCODE>', data['admin_regcode'])
-
-		status = cmd.set(entry)
-		assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
-		status = cmd.validate(shellstate)
-		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
-		status = cmd.execute(shellstate)
-		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
-	
-	status = cmd.set('regcode admin/example.com Shouldnt-Matter ThisShouldFail')
-	assert not status.error(), f"{funcname()}: final set failed"
-	status = cmd.validate(shellstate)
-	assert status.error(), f"{funcname()}: validate passed registering while an identity exists"
 
 
 def test_preregister_plus():
@@ -349,6 +307,43 @@ def test_profile():
 	# TODO: Finish writing profile command tests
 
 
+def test_regcode():
+	'''Tests the regcode command'''
+	test_folder = setup_test(funcname())
+	shellstate = shellbase.ShellState(test_folder)
+	profman = userprofile.profman
+
+	cmd = iscmds.CommandRegCode()
+	cmdlist = [ 'regcode <ADMINWID> <REGCODE> MyS3cretPassw*rd',
+				'regcode admin/example.com <REGCODE> MyS3cretPassw*rd' ]
+
+	for entry in cmdlist:
+		pnames = [p.name for p in profman.get_profiles()]
+		if funcname() in pnames:
+			profman.activate_profile('primary')
+			profman.delete_profile(funcname())
+		
+		profman.create_profile(funcname())
+		profman.activate_profile(funcname())
+
+		data = server_reset.reset()
+		
+		entry = entry.replace('<ADMINWID>', data['admin'])
+		entry = entry.replace('<REGCODE>', data['admin_regcode'])
+
+		status = cmd.set(entry)
+		assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
+		status = cmd.validate(shellstate)
+		assert not status.error(), f"{funcname()}: validate('{entry}') failed: {status.error()}"
+		status = cmd.execute(shellstate)
+		assert not status.error(), f"{funcname()}: execute('{entry}') failed: {status.error()}"
+	
+	status = cmd.set('regcode admin/example.com Shouldnt-Matter ThisShouldFail')
+	assert not status.error(), f"{funcname()}: final set failed"
+	status = cmd.validate(shellstate)
+	assert status.error(), f"{funcname()}: validate passed registering while an identity exists"
+
+
 def test_register():
 	'''Tests the register command'''
 	test_folder = setup_test(funcname())
@@ -359,11 +354,6 @@ def test_register():
 	status = shellstate.client.redeem_regcode(MAddress('admin/example.com'), data['admin_regcode'],
 		'MyS3cretPassw*rd')
 	assert not status.error(), f"{funcname()}: admin regcode failed: {status.error()}"
-
-	status = profman.create_profile('testuser')
-	assert not status.error(), f"{funcname()}: failed to create test user profile: {status.error()}"
-	status = profman.activate_profile('testuser')
-	assert not status.error(), f"{funcname()}: failed to activate test user profile: {status.error()}"
 
 	cmd = iscmds.CommandRegister()
 	cmdlist = [ 'register example.com "Corbin Simons" userid=csimons password=MyS3cretPassw*rd' ]
@@ -378,8 +368,6 @@ def test_register():
 		profman.create_profile(funcname())
 		profman.activate_profile(funcname())
 
-		server_reset.reset()
-
 		status = cmd.set(entry)
 		assert not status.error(), f"{funcname()}: set('{entry}') failed: {status.error()}"
 		status = cmd.validate(shellstate)
@@ -390,9 +378,9 @@ def test_register():
 
 if __name__ == '__main__':
 	# test_login_logout()
-	# test_myinfo()
-	# test_myinfo_check()
+	test_myinfo()
+	test_myinfo_check()
 	# test_preregister_plus()
 	# test_profile()
 	# test_regcode()
-	test_register()
+	# test_register()
