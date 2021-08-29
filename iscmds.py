@@ -132,7 +132,7 @@ class CommandMyInfo(BaseCommand):
 		elif self.args['verb'] == 'del':
 			return delete_user_field(profile.db, self.args['field'])
 		elif self.args['verb'] == 'get':
-			status = profile.load_field(self.args['field'])
+			status = load_user_field(profile.db, self.args['field'])
 			if status.error():
 				return status
 			
@@ -299,18 +299,17 @@ class CommandRegister(BaseCommand):
 				save_user_list_field(profile.db, profile.wid, 'AdditionalNames', parts[1:-1])
 		
 		workspace_data = {
-				'Label':		'Primary',
-				'Workspace':	profile.wid.as_string(),
-				'Domain':		profile.domain.as_string(),
+			'Mensago.0.Label':		'Primary',
+			'Mensago.0.Workspace':	profile.wid.as_string(),
+			'Mensago.0.Domain':		profile.domain.as_string(),
 		}
+
 		if not uid.is_wid():
-			workspace_data['UserID'] = uid.as_string()
-		save_user_list_field(profile.db, 'Mensago', [ workspace_data ])
+			workspace_data['Mensago.0.UserID'] = uid.as_string()
 
+		for k,v in workspace_data.items():
+			save_user_field(profile.db, k, v)
 
-		# TODO: Add an entry to the keycard
-		# TODO: Save signed keycard to database
-		
 		return RetVal().set_info('Registration successful')
 
 
