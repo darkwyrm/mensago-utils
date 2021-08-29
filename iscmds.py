@@ -3,8 +3,9 @@ from getpass import getpass
 
 from retval import ErrExists, RetVal, ErrBadData, ErrBadValue, ErrOK, ErrServerError
 
-from pymensago.contacts import delete_field, save_field, load_field, save_list_field
-from pymensago.flatcontact import unflatten
+from pymensago.userinfo import delete_user_field, save_user_field, load_user_field, \
+	save_user_list_field
+from pymensago.contact import unflatten
 from pymensago.encryption import check_password_complexity
 from pymensago.utils import MAddress, UserID, Domain
 
@@ -127,9 +128,9 @@ class CommandMyInfo(BaseCommand):
 			profile = status['profile']
 		
 		if self.args['verb'] == 'set':
-			return profile.save_field(self.args['field'], self.args['value'])
+			return save_user_field(profile.db, self.args['field'], self.args['value'])
 		elif self.args['verb'] == 'del':
-			return delete_field(profile.db, profile.wid, self.args['field'])
+			return delete_user_field(profile.db, self.args['field'])
 		elif self.args['verb'] == 'get':
 			status = profile.load_field(self.args['field'])
 			if status.error():
@@ -162,7 +163,7 @@ class CommandMyInfo(BaseCommand):
 				return outstatus 
 			return RetVal(ErrOK, 'User contact info is compliant')
 
-		return load_field(profile.db, profile.wid, '*')
+		return load_user_field(profile.db, '*')
 
 
 class CommandPreregister(BaseCommand):
@@ -285,17 +286,17 @@ class CommandRegister(BaseCommand):
 			parts = self.tokens[1].split(' ')
 			
 			if len(parts) == 1 and parts[0]:
-				profile.save_field('GivenName', parts[0])
-				profile.save_field('FormattedName', parts[0])
+				save_user_field(profile.db, 'GivenName', parts[0])
+				save_user_field(profile.db, 'FormattedName', parts[0])
 			elif len(parts) == 2:
-				profile.save_field('GivenName', parts[0])
-				profile.save_field('FamilyName', parts[1])
-				profile.save_field('FormattedName', self.tokens[1])
+				save_user_field(profile.db, 'GivenName', parts[0])
+				save_user_field(profile.db, 'FamilyName', parts[1])
+				save_user_field(profile.db, 'FormattedName', self.tokens[1])
 			elif len(parts) > 2:
-				profile.save_field('GivenName', parts[0])
-				profile.save_field('FamilyName', parts[-1])
-				profile.save_field('FormattedName', self.tokens[1])
-				save_list_field(profile.db, profile.wid, 'AdditionalNames', parts[1:-1])
+				save_user_field(profile.db, 'GivenName', parts[0])
+				save_user_field(profile.db, 'FamilyName', parts[-1])
+				save_user_field(profile.db, 'FormattedName', self.tokens[1])
+				save_user_list_field(profile.db, profile.wid, 'AdditionalNames', parts[1:-1])
 		
 		workspace_data = {
 				'Label':		'Primary',
@@ -481,7 +482,7 @@ def _check_myinfo(shellstate: ShellState) -> RetVal:
 	status = shellstate.client.pman.get_active_profile()
 	if not status.error():
 		profile = status['profile']
-	status = load_field(profile.db, profile.wid, '*')
+	status = load_user_field(profile.db, profile.wid, '*')
 	if status.error():
 		return status
 

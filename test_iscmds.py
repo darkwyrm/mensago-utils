@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 
-from pymensago.contacts import load_field
+from pymensago.userinfo import load_user_field
 import pymensago.userprofile as userprofile
 from pymensago.utils import MAddress
 from retval import ErrNotFound
@@ -102,7 +102,7 @@ def test_myinfo():
 	status = profman.get_active_profile()
 	assert not status.error(), f"{funcname()}: failed to get active profile: {status.error()}"
 	profile = status['profile']
-	status = load_field(profile.db, profile.wid, 'Annotations.Nicknames.2')
+	status = load_user_field(profile.db, 'Annotations.Nicknames.2')
 	assert status.error() == ErrNotFound, \
 		f"{funcname()}: del failed to delete value: {status.error()}"
 
